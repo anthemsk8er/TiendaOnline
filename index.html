@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KetoShop - Suplementos Naturales</title>
+    <link rel="preload" fetchpriority="high" as="image" href="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/hero-woman-main.jpg" type="image/jpeg">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Poppins', sans-serif;
+      }
+      @keyframes tada-periodic {
+        /* Idle state */
+        0%, 80%, 100% {
+          transform: scale3d(1, 1, 1);
+        }
+        
+        /* Start of 'tada' animation (at 4s mark in a 5s loop) */
+        82%, 84% {
+          transform: scale3d(0.9, 0.9, 0.9) rotate3d(0, 0, 1, -3deg);
+        }
+        86%, 90%, 94% {
+          transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, 3deg);
+        }
+        88%, 92%, 96% {
+          transform: scale3d(1.1, 1.1, 1.1) rotate3d(0, 0, 1, -3deg);
+        }
+      }
+
+      .animate-tada-periodic {
+        animation: tada-periodic 5s infinite;
+      }
+
+      /* NEW STYLES for Infinite Banner */
+      @keyframes scroll-left {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      .animate-scroll-slow {
+        animation: scroll-left 80s linear infinite;
+      }
+      .animate-scroll-normal {
+        animation: scroll-left 40s linear infinite;
+      }
+      .animate-scroll-fast {
+        animation: scroll-left 20s linear infinite;
+      }
+      
+      /* NEW STYLES for 404 Page */
+      @keyframes spin-slow {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .animate-spin-slow {
+        animation: spin-slow 10s linear infinite;
+      }
+      
+      /* NEW STYLES for intro animation */
+      @keyframes fade-in-up {
+        from {
+          opacity: 0;
+          transform: translateY(15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+      .animate-fade-in-up {
+        animation: fade-in-up 0.6s ease-out forwards;
+        opacity: 0; /* Start hidden */
+      }
+      .delay-100 { animation-delay: 0.1s; }
+      .delay-200 { animation-delay: 0.2s; }
+      .delay-300 { animation-delay: 0.3s; }
+      .delay-400 { animation-delay: 0.4s; }
+      .delay-500 { animation-delay: 0.5s; }
+      .delay-600 { animation-delay: 0.6s; }
+      .delay-700 { animation-delay: 0.7s; }
+
+      /* NEW STYLES for DiscountTab */
+      .discount-tab-button {
+        position: fixed;
+        left: 0;
+        top: 40%;
+        transform: translateY(-50%) rotate(-90deg);
+        transform-origin: 0 0;
+        z-index: 40;
+      }
+      .modal-enter {
+          opacity: 0;
+      }
+      .modal-enter-active {
+          opacity: 1;
+          transition: opacity 300ms;
+      }
+      .modal-exit {
+          opacity: 1;
+      }
+      .modal-exit-active {
+          opacity: 0;
+          transition: opacity 300ms;
+      }
+      .modal-content-enter {
+          transform: scale(0.9) translateY(20px);
+          opacity: 0;
+      }
+      .modal-content-enter-active {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+          transition: all 300ms;
+      }
+      .modal-content-exit {
+          transform: scale(1) translateY(0);
+          opacity: 1;
+      }
+      .modal-content-exit-active {
+          transform: scale(0.9) translateY(20px);
+          opacity: 0;
+          transition: all 300ms;
+      }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-white text-gray-800">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

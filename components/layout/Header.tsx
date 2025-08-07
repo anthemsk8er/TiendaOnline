@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Profile } from '../../types';
@@ -10,7 +11,7 @@ interface HeaderProps {
   onCartClick: () => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
@@ -28,7 +29,7 @@ const Header: React.FC<HeaderProps> = ({
   onCartClick,
   onCatalogClick,
   onHomeClick,
-  onContactClick,
+  onContactFaqClick,
   onAdminProductUploadClick,
   onAdminProductManagementClick,
   onAdminUserManagementClick,
@@ -60,7 +61,7 @@ const Header: React.FC<HeaderProps> = ({
   const navLinks = [
     { label: 'Inicio', handler: createNavHandler(onHomeClick) },
     { label: 'Catálogo', handler: createNavHandler(onCatalogClick) },
-    { label: 'Contacto', handler: createNavHandler(onContactClick) },
+    { label: 'Ayuda y FAQ', handler: createNavHandler(onContactFaqClick) },
   ];
 
   const adminLinks = [

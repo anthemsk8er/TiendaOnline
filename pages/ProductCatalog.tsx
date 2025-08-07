@@ -1,5 +1,7 @@
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
@@ -17,7 +19,7 @@ interface ProductCatalogProps {
   onProductClick: (productId: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -35,7 +37,7 @@ interface ProductCatalogProps {
 }
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
-    onProductClick, onCatalogClick, onHomeClick, onContactClick, onLegalClick,
+    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
     onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick,
     category, cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
     session, profile, onLogout, showAuthModal
@@ -84,7 +86,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         onCartClick={handleOpenCart} 
         onCatalogClick={onCatalogClick} 
         onHomeClick={onHomeClick} 
-        onContactClick={onContactClick} 
+        onContactFaqClick={onContactFaqClick} 
         onAdminProductUploadClick={onAdminProductUploadClick} 
         onAdminProductManagementClick={onAdminProductManagementClick}
         onAdminUserManagementClick={onAdminUserManagementClick}
@@ -164,7 +166,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         </div>
 
       </main>
-      <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} />
+      <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
       <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity} />
       <Cart 
         isOpen={isCartOpen} 

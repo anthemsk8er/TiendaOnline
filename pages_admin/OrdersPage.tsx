@@ -3,6 +3,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Order, Profile } from '../types';
@@ -13,7 +14,7 @@ import Footer from '../components/layout/Footer';
 interface OrdersPageProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -114,7 +115,7 @@ const OrdersPage: React.FC<OrdersPageProps> = (props) => {
           )}
         </div>
       </main>
-      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
     </div>
   );
 };

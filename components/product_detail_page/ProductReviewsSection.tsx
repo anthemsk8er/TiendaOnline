@@ -26,7 +26,7 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
 
       try {
         // Fetch only approved reviews for the given product
-        const { data, error: fetchError }: { data: Review[] | null, error: PostgrestError | null } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('reviews')
           .select('*')
           .eq('product_id', productId)
@@ -42,7 +42,7 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
               throw fetchError;
           }
         } else {
-          setReviews(data || []);
+          setReviews((data as Review[]) || []);
           setIsFeatureReady(true);
         }
 

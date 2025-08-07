@@ -1,24 +1,38 @@
 import React from 'react';
-import type { HeroData } from '../../types';
-import InfiniteTextBanner from '../shared/InfiniteTextBanner';
+import type { HeroData, HeroBenefit } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';
 
-const FeatureBubble = ({ icon, text }: { icon: string, text: string }) => (
-  <div className="flex flex-col items-center gap-2 text-center">
-    <div className="w-24 h-24 bg-sky-100/80 rounded-full flex items-center justify-center">
-      <DynamicIcon name={icon} className="w-10 h-10 text-sky-600" />
-    </div>
-    <p className="font-semibold text-sm max-w-[120px]">{text}</p>
-  </div>
-);
+interface FeatureItemProps {
+  icon: string;
+  title: string;
+  children?: React.ReactNode;
+  alignment?: 'left' | 'right';
+}
+
+const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, children, alignment = 'left' }) => {
+    const isRight = alignment === 'right';
+    const containerClasses = `flex items-start gap-4 ${isRight ? 'lg:flex-row-reverse' : ''}`;
+    const textAlignment = `text-left ${isRight ? 'lg:text-right' : ''}`;
+
+    return (
+        <div className={containerClasses}>
+            <div className="flex-shrink-0 mt-1">
+                <DynamicIcon name={icon} className="w-8 h-8 text-indigo-500" />
+            </div>
+            <div className={textAlignment}>
+                <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+                {children && <p className="mt-1 text-gray-600">{children}</p>}
+            </div>
+        </div>
+    );
+};
 
 interface ProductHeroProps {
-  heroData?: HeroData;
+    heroData?: HeroData;
 }
 
 const ProductHero: React.FC<ProductHeroProps> = ({ heroData }) => {
   if (!heroData || !heroData.imageUrl) {
-    // You can return a default static hero or null
     return null;
   }
   
@@ -27,64 +41,59 @@ const ProductHero: React.FC<ProductHeroProps> = ({ heroData }) => {
   const leftBenefits = benefits.slice(0, midPoint);
   const rightBenefits = benefits.slice(midPoint);
 
-
   return (
-    <section className="text-center py-8 px-4 md:py-12">
+    <section className="py-16 lg:py-24 bg-white">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center">
+            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight uppercase animate-fade-in-up">
+              {title}
+            </h2>
+            <p className="mt-4 max-w-3xl mx-auto text-center text-gray-600 animate-fade-in-up delay-100">
+              {subtitle}
+            </p>
+        </div>
 
-
-
-      <div className="flex justify-center items-center gap-2 animate-fade-in-up">
-        <DynamicIcon name={benefits[0]?.icon || 'LeafIcon'} className="w-7 h-7 md:w-8 md:h-8 text-green-600" strokeWidth={2} />
-        <h1 className="text-2xl md:text-4xl font-black text-gray-800 tracking-tighter">
-          {title}
-        </h1>
-      </div>
-      <p className="mt-2 text-base md:text-lg text-gray-500 animate-fade-in-up delay-100">{subtitle}</p>
-      
-      <div className="mt-8 max-w-5xl mx-auto">
-        {/* Desktop Layout */}
-        <div className="hidden md:flex flex-row items-center justify-center gap-8 lg:gap-12">
-            <div className="flex flex-col justify-center gap-12">
+        <div className="mt-12 lg:mt-20 grid grid-cols-1 lg:grid-cols-[1fr,auto,1fr] lg:gap-x-12 gap-y-10">
+            
+            <div className="lg:col-start-1 space-y-10 lg:flex lg:flex-col lg:justify-center lg:items-end">
                 {leftBenefits.map((benefit, index) => (
-                    <FeatureBubble key={index} icon={benefit.icon} text={benefit.title} />
+                    <div className="max-w-md" key={index}>
+                        <FeatureItem
+                          title={benefit.title}
+                          alignment="right"
+                          icon={benefit.icon}
+                        >
+                        </FeatureItem>
+                    </div>
                 ))}
             </div>
-            <div className="flex-shrink-0">
-              <img 
-                src={imageUrl}
-                alt={title}
-                className="max-w-[600px] sm:max-w-xs w-full z-10"
-                width="320"
-                height="320"
-                loading="lazy"
-              />
+            
+            <div className="lg:col-start-2 lg:row-start-1 lg:row-span-2 flex justify-center items-center">
+                 <img 
+                    src={imageUrl} 
+                    alt={title} 
+                    className="max-w-[600px] sm:max-w-sm w-full" 
+                    width="400"
+                    height="400"
+                    loading="lazy"
+                />
             </div>
-            <div className="flex flex-col justify-center gap-12">
-                {rightBenefits.map((benefit, index) => (
-                    <FeatureBubble key={index} icon={benefit.icon} text={benefit.title} />
-                ))}
-            </div>
-        </div>
-        
-        {/* Mobile Layout */}
-        <div className="md:hidden flex flex-col items-center">
-            <img 
-              src={imageUrl}
-              alt={title}
-              className="max-w-[600px] w-full"
-              width="600"
-              height="600"
-              loading="lazy"
-            />
-            <div className="mt-8 grid grid-cols-2 gap-x-8 gap-y-10 w-full">
-                {benefits.map((benefit, index) => (
-                    <FeatureBubble key={index} icon={benefit.icon} text={benefit.title} />
-                ))}
-            </div>
-        </div>
 
+            <div className="lg:col-start-3 lg:row-start-1 space-y-10 lg:flex lg:flex-col lg:justify-center">
+                {rightBenefits.map((benefit, index) => (
+                     <div className="max-w-md" key={index}>
+                        <FeatureItem
+                          title={benefit.title}
+                          icon={benefit.icon}
+                        >
+                        </FeatureItem>
+                    </div>
+                ))}
+            </div>
+        </div>
       </div>
     </section>
   );
 };
+
 export default ProductHero;

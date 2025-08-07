@@ -10,7 +10,7 @@ import { Database } from '../lib/database.types';
 interface DiscountCodeFormPageProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -193,7 +193,7 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
                     </form>
                 </div>
             </main>
-            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick}/>
         </div>
     );
 };

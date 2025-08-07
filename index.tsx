@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom/client';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
 import ProductDetailPage from './pages/ProductDetailPage';
-import ContactPage from './pages/ContactPage';
+import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
@@ -17,7 +17,7 @@ import ReviewManagementPage from './pages_admin/ReviewManagementPage';
 import AuthModal from './components/auth/AuthModal';
 import { supabase } from './lib/supabaseClient';
 import type { Product, CartItem, Profile } from './types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestError } from '@supabase/supabase-js';
 import DiscountTab from './components/shared/DiscountTab';
 
 interface ViewState {
@@ -167,7 +167,7 @@ const App = () => {
     const handleHomeClick = () => navigate('home');
     const handleCatalogClick = (category?: string) => navigate('catalog', null, category || null);
     const handleProductClick = (id: string) => navigate('product', id);
-    const handleContactClick = () => navigate('contact');
+    const handleContactFaqClick = () => navigate('contact-faq');
     const handleLegalClick = () => navigate('legal');
 
     // Admin navigation
@@ -281,7 +281,7 @@ const App = () => {
         onProductClick: handleProductClick,
         onCatalogClick: handleCatalogClick,
         onHomeClick: handleHomeClick,
-        onContactClick: handleContactClick,
+        onContactFaqClick: handleContactFaqClick,
         onLegalClick: handleLegalClick,
         session: session,
         profile: profile,
@@ -311,8 +311,8 @@ const App = () => {
                 return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} />;
             case 'product':
                 return <ProductDetailPage {...pageProps} productId={currentView.productId} />;
-            case 'contact':
-                return <ContactPage {...pageProps} />;
+            case 'contact-faq':
+                return <ContactFaqPage {...pageProps} />;
             case 'legal':
                 return <LegalPage {...pageProps} />;
             case 'admin-products':

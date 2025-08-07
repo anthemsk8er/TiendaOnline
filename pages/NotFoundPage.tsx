@@ -15,7 +15,7 @@ const CogIcon: React.FC<{ className?: string }> = ({ className }) => (
 interface NotFoundPageProps {
   onHomeClick: () => void;
   onCatalogClick: (category?: string) => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   cartItemCount: number;
   session: Session | null;
@@ -55,7 +55,7 @@ const NotFoundPage: React.FC<NotFoundPageProps> = (props) => {
                     </button>
                 </div>
             </main>
-            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
         </div>
     );
 };

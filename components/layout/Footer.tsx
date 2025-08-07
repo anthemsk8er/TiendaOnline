@@ -4,9 +4,10 @@ interface FooterProps {
   onLegalClick: () => void;
   onCatalogClick: (category: string) => void;
   onHomeClick: () => void;
+  onContactFaqClick: () => void;
 }
 
-const Footer: React.FC<FooterProps> = ({ onLegalClick, onCatalogClick, onHomeClick }) => {
+const Footer: React.FC<FooterProps> = ({ onLegalClick, onCatalogClick, onHomeClick, onContactFaqClick }) => {
   return (
     <footer className="bg-gray-50 border-t mt-16">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -29,9 +30,9 @@ const Footer: React.FC<FooterProps> = ({ onLegalClick, onCatalogClick, onHomeCli
           <div>
             <h4 className="font-semibold text-gray-800">Ayuda</h4>
             <ul className="mt-4 space-y-2 text-sm text-gray-600">
-              <li><a href="#" className="hover:text-green-600">Preguntas Frecuentes</a></li>
-              <li><a href="#" className="hover:text-green-600">Envíos y Devoluciones</a></li>
-              <li><a href="#" className="hover:text-green-600">Contacto</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onContactFaqClick(); }} className="hover:text-green-600">Preguntas Frecuentes</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onLegalClick(); }} className="hover:text-green-600">Envíos y Devoluciones</a></li>
+              <li><a href="#" onClick={(e) => { e.preventDefault(); onContactFaqClick(); }} className="hover:text-green-600">Contacto</a></li>
             </ul>
           </div>
           <div>

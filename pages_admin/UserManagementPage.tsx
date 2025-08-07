@@ -10,7 +10,7 @@ import { Database } from '../lib/database.types';
 interface UserManagementPageProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -129,7 +129,7 @@ const UserManagementPage: React.FC<UserManagementPageProps> = (props) => {
           )}
         </div>
       </main>
-      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
     </div>
   );
 };

@@ -12,7 +12,7 @@ import { Database, Json } from '../lib/database.types';
 interface ProductUploadPageProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -187,7 +187,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             };
             setExistingProduct(transformedProduct);
             
-            const { product_tags, product_categories, hero_data, features_data, benefits_data, comparison_data, faq_data, video_with_features_data, ...productData } = productResData as any;
+            const { product_tags, product_categories, hero_data, features_data, benefits_data, comparison_data, faq_data, video_with_features_data, ...productData } = productResData;
             setFormData({
                 name: productData.name || '',
                 description: productData.description || '',
@@ -449,7 +449,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             return existingUrl ?? null;
         };
 
-        const dbData = {
+        const dbData: Omit<Database['public']['Tables']['products']['Insert'], 'created_at'> & { id?: string } = {
           name: formData.name,
           description: formData.description,
           price: Number(formData.price),
@@ -672,7 +672,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             </form>
         </div>
       </main>
-      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick}/>
     </div>
   );
 };

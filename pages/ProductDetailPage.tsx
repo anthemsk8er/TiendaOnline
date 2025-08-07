@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Product, Review, CartItem, SupabaseProduct, Tag, Category, AccordionItem, HeroData, FeaturesData, BenefitsData, ComparisonData, FaqData, Profile, VideoWithFeaturesData } from '../types';
 import type { Session, PostgrestError } from '@supabase/supabase-js';
@@ -27,7 +28,7 @@ interface ProductDetailPageProps {
   onProductClick: (productId: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -48,7 +49,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   onProductClick, 
   onCatalogClick, 
   onHomeClick,
-  onContactClick,
+  onContactFaqClick,
   onLegalClick,
   onAdminProductUploadClick,
   onAdminProductManagementClick,
@@ -210,7 +211,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
     };
   }, [isCartOpen, isCheckoutOpen]);
 
-  const headerProps = { onCartClick:handleOpenCart, onCatalogClick, onHomeClick, onContactClick, onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick, cartItemCount, session, profile, onLogout, showAuthModal};
+  const headerProps = { onCartClick:handleOpenCart, onCatalogClick, onHomeClick, onContactFaqClick, onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick, cartItemCount, session, profile, onLogout, showAuthModal};
 
   if (loading) {
     return (
@@ -234,7 +235,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               Volver al inicio
           </button>
         </div>
-        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} />
+        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
       </div>
     );
   }
@@ -253,7 +254,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
               Volver al inicio
           </button>
         </div>
-        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} />
+        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
       </div>
     );
   }
@@ -347,7 +348,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
    
 
       </main>
-      <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} />
+      <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t border-black-500 sm:hidden z-30">
         <button 
           onClick={() => handleOrderNow(1)}

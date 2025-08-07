@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { SupabaseProduct, Category, Profile } from '../types';
@@ -12,7 +13,7 @@ interface ProductManagementPageProps {
   onAddNewProduct: () => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -138,7 +139,7 @@ const ProductManagementPage: React.FC<ProductManagementPageProps> = (props) => {
           )}
         </div>
       </main>
-      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
     </div>
   );
 };

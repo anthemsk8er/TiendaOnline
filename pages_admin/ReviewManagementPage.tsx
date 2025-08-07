@@ -10,7 +10,7 @@ import { CheckIcon, TrashIcon } from '../components/product_detail_page/Icons';
 interface ReviewManagementPageProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -49,7 +49,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
           setError(fetchError.message);
       }
     } else {
-      setReviews(data || []);
+      setReviews(data as Review[]);
     }
     setLoading(false);
   };
@@ -171,7 +171,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
           )}
         </div>
       </main>
-      <Footer {...props} />
+      <Footer {...props} onContactFaqClick={props.onContactFaqClick} />
     </div>
   );
 };

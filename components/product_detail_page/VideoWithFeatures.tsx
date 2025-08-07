@@ -36,14 +36,14 @@ const VideoWithFeatures: React.FC<VideoWithFeaturesProps> = ({ data }) => {
         )}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Video Column */}
-          <div className="aspect-w-16 aspect-h-16 rounded-xl overflow-hidden shadow-2xl bg-black animate-fade-in-up delay-100">
+          <div className="aspect-w-16 h-64 rounded-xl overflow-hidden shadow-2xl bg-black animate-fade-in-up delay-100">
             {embedUrl ? (
               <iframe
                 src={embedUrl}
                 frameBorder="0"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                title={title || "Product Video"}
+                title={title || "Video del Producto"}
                 className="w-full h-full"
               />
             ) : (

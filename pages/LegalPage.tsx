@@ -3,6 +3,7 @@
 
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Profile } from '../types';
@@ -12,7 +13,7 @@ import Footer from '../components/layout/Footer';
 interface LegalPageProps {
   onHomeClick: () => void;
   onCatalogClick: (category?: string) => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void; // For the footer
   cartItemCount: number;
   session: Session | null;
@@ -111,9 +112,9 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                   <ul>
                     <li>Razón Social: ROBERTO ORLANDO FRANCISCO REVOREDO ALVA</li>
                     <li>RUC: 10428238821</li>
-                    <li>LIMA - PUEBLO LIBRE</li>
+                    <li>LIMA - LIMA</li>
                     <li>Email: vpfaprincipal@gmail.com</li>
-                    <li>Whatsapp: 965210993</li>
+                    <li>Whatsapp: 955249392</li>
                   </ul>
                   <h3>1.2 ACEPTACIÓN DE TÉRMINOS</h3>
                   <p>Al utilizar nuestros servicios, confirmas que:</p>
@@ -326,7 +327,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                   <h3>4.6 MÉTODOS DE REEMBOLSO</h3>
                   <ul>
                     <li><strong>Transferencia bancaria:</strong> 5-7 días hábiles</li>
-                    <li><strong>Crédito en tienda:</strong> Inmediato (con 5% adicional de bonificación)</li>
+              
                     <li><strong>Tarjeta de crédito:</strong> 10-15 días hábiles según banco</li>
                   </ul>
                   <h3>4.7 CAMBIOS</h3>
@@ -344,10 +345,9 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                     <li>Recolección del producto defectuoso sin costo</li>
                   </ol>
                   <h3>4.9 CONTACTO PARA DEVOLUCIONES</h3>
-                  <p><strong>WhatsApp:</strong> 965210993</p>
-                  <p><strong>Email:</strong> devoluciones@ketoshop.com</p>
-                  <p><strong>Horario:</strong> Lunes a viernes 9:00 AM - 6:00 PM</p>
-                  <p><strong>Dirección para devoluciones:</strong> Av. La Marina 234, Pueblo Libre, Lima, Perú (Dirección de ejemplo)</p>
+                  <p><strong>WhatsApp:</strong> 955249392</p>
+                  <p><strong>Email:</strong> devoluciones@ketoshopnatural.com</p>
+                  
                   <h3>4.10 CASOS ESPECIALES</h3>
                   <ul>
                     <li><strong>Productos vencidos:</strong> Reemplazo inmediato</li>
@@ -385,7 +385,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
             </div>
         </div>
       </main>
-      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
     </div>
   );
 };

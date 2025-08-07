@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useState, useEffect } from 'react';
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
@@ -25,7 +28,7 @@ interface HomePageProps {
   onProductClick: (productId: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
-  onContactClick: () => void;
+  onContactFaqClick: () => void;
   onLegalClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
@@ -42,7 +45,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ 
-    onProductClick, onCatalogClick, onHomeClick, onContactClick, onLegalClick,
+    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
     onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick,
     cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
     session, profile, onLogout, showAuthModal
@@ -78,7 +81,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onCartClick={handleOpenCart} 
                 onCatalogClick={onCatalogClick} 
                 onHomeClick={onHomeClick} 
-                onContactClick={onContactClick} 
+                onContactFaqClick={onContactFaqClick} 
                 onAdminProductUploadClick={onAdminProductUploadClick} 
                 onAdminProductManagementClick={onAdminProductManagementClick} 
                 onAdminUserManagementClick={onAdminUserManagementClick}
@@ -90,11 +93,11 @@ const HomePage: React.FC<HomePageProps> = ({
             />
             <main>
                 {/* Banner Section with Image */}
-                <section className="relative h-[50vh] md:h-[60vh] flex flex-col items-center justify-center text-white text-center px-4 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full bg-black/20 z-10"></div>
+                <section className="relative h-[60vh] md:h-[60vh] flex flex-col items-center justify-center text-white text-center px-4 overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-full z-10"></div>
                     <img
-                        src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/hero-woman-main.jpg"
-                        alt="Mujer disfrutando de un estilo de vida saludable"
+                        src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/promo_energia_natural.jpg"
+                        alt="Promo Energía"
                         className="absolute top-0 left-0 w-full h-full object-cover z-0"
                         width="1280"
                         height="853"
@@ -102,12 +105,13 @@ const HomePage: React.FC<HomePageProps> = ({
                     />
                     <div className="relative z-20 flex flex-col items-center">
        
-                        <button 
+                       {/*  <button 
                             onClick={() => onCatalogClick()}
                             className="mt-40 bg-blue-700 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 text-lg shadow-lg animate-fade-in-up delay-200"
                         >
                             Ver Catálogo <ArrowRightIcon className="w-5 h-5" />
                         </button>
+                        */}
                     </div>
                 </section>
 
@@ -165,7 +169,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 </section>
                 <ShippingGuaranteeSection />
             </main>
-            <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} />
+            <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
             <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity}/>
             <Cart 
                 isOpen={isCartOpen} 

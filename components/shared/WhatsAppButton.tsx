@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { WhatsAppIcon } from '../product_detail_page/Icons';
 
 interface WhatsAppButtonProps {
   phoneNumber: string;
@@ -42,7 +41,7 @@ const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, c
         aria-hidden={!showMessage}
       >
         <span className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
-        Online - Tap aquí para mas información
+        Online
       </div>
 
       {/* WhatsApp Button */}
@@ -50,10 +49,14 @@ const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, c
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="bg-[#25D366] text-white p-3 rounded-full shadow-lg hover:bg-[#128C7E] transition-all duration-300 transform group-hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        className="rounded-full shadow-lg hover:opacity-90 transition-all duration-300 transform group-hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         aria-label="Contactar por WhatsApp"
       >
-        <WhatsAppIcon className="w-8 h-8" />
+        <img
+            src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/whatsapp-icon-chat/boton-whatsapp.svg"
+            alt="Contactar por WhatsApp"
+            className="w-60 h-16"
+        />
       </a>
     </div>
   );

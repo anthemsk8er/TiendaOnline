@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { HeroData, HeroBenefit } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';

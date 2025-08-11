@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Profile } from '../types';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import type { Session } from '@supabase/supabase-js';
-import { Database } from '../lib/database.types';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
+import type { Database } from '../lib/database.types';
 
 interface UserManagementPageProps {
   onCatalogClick: (category?: string) => void;
@@ -35,14 +34,14 @@ const UserManagementPage: React.FC<UserManagementPageProps> = (props) => {
       return;
     }
     setLoading(true);
-    const { data, error } = await supabase
+    const { data, error }: PostgrestResponse<Profile> = await supabase
       .from('profiles')
       .select('id, full_name, role');
 
     if (error) {
       setError(error.message);
     } else {
-      setUsers(data as Profile[]);
+      setUsers(data || []);
     }
     setLoading(false);
   };
@@ -57,9 +56,10 @@ const UserManagementPage: React.FC<UserManagementPageProps> = (props) => {
       setMessage({ type: 'error', text: 'Database client not available.' });
       return;
     }
+    
     const { error } = await supabase
       .from('profiles')
-      .update({ role: newRole } as any)
+      .update({ role: newRole })
       .eq('id', userId);
 
     if (error) {

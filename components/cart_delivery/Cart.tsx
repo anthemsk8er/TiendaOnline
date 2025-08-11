@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ShoppingBagIcon, TrashIcon, AmexIcon, DinersClubIcon, MastercardIcon, VisaIcon, MinusIcon, PlusIcon } from '../product_detail_page/Icons';
 import type { CartItem } from '../../types';

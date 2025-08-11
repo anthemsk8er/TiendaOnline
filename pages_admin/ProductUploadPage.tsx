@@ -1,13 +1,12 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Category, Tag, HeroData, FeaturesData, BenefitsData, HeroBenefit, FeatureBenefit, BenefitItem, SupabaseProduct, ComparisonData, ComparisonFeature, FaqData, FaqItem, Profile, VideoWithFeaturesData, VideoFeatureItem } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestSingleResponse, PostgrestResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { ChevronDownIcon, ChevronUpIcon, TrashIcon, PlusIcon } from '../components/product_detail_page/Icons';
 import { iconKeys } from '../lib/iconMap';
-import { Database, Json } from '../lib/database.types';
+import type { Database, Json } from '../lib/database.types';
 
 interface ProductUploadPageProps {
   onCatalogClick: (category?: string) => void;
@@ -111,7 +110,7 @@ const ImageUploader: React.FC<{
 };
 
 
-const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, onFinished, ...props }) => {
+export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, onFinished, ...props }) => {
   const isEditMode = !!productIdToEdit;
   const [activeTab, setActiveTab] = useState('info');
   const [formData, setFormData] = useState<ProductFormState>(initialFormState);
@@ -155,16 +154,19 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
       if (!supabase) return;
       setLoading(true);
 
-      const [categoriesRes, tagsRes] = await Promise.all([
-          supabase.from('categories').select('id, name'),
-          supabase.from('tags').select('id, name'),
-      ]);
+      const { data: categoriesData, error: categoriesError }: PostgrestResponse<Category> = await supabase.from('categories').select('id, name');
+      if (categoriesError) {
+        setMessage({ type: 'error', text: 'Error al cargar categorías: ' + categoriesError.message });
+      } else {
+        setCategories(categoriesData || []);
+      }
 
-      if (categoriesRes.error) setMessage({ type: 'error', text: 'Error al cargar categorías: ' + categoriesRes.error.message });
-      else setCategories(categoriesRes.data || []);
-
-      if (tagsRes.error) setMessage({ type: 'error', text: 'Error al cargar etiquetas: ' + tagsRes.error.message });
-      else setTags(tagsRes.data || []);
+      const { data: tagsData, error: tagsError }: PostgrestResponse<Tag> = await supabase.from('tags').select('id, name, color');
+       if (tagsError) {
+        setMessage({ type: 'error', text: 'Error al cargar etiquetas: ' + tagsError.message });
+      } else {
+        setTags(tagsData || []);
+      }
       
       if (isEditMode && productIdToEdit) {
         const { data: productResData, error: productResError } = await supabase
@@ -176,18 +178,19 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
         if (productResError) {
             setMessage({ type: 'error', text: 'Error al cargar el producto: ' + productResError.message });
         } else if (productResData) {
+            const productResDataAny = productResData as any;
             const transformedProduct: SupabaseProduct = {
-                ...productResData,
-                tags: (productResData.product_tags || [])
+                ...productResDataAny,
+                tags: (productResDataAny.product_tags || [])
                     .map((pt: { tags: Tag | null }) => pt.tags)
                     .filter((t: Tag | null): t is Tag => t !== null),
-                categories: (productResData.product_categories || [])
+                categories: (productResDataAny.product_categories || [])
                     .map((pc: { categories: Category | null }) => pc.categories)
                     .filter((c: Category | null): c is Category => c !== null),
             };
             setExistingProduct(transformedProduct);
             
-            const { product_tags, product_categories, hero_data, features_data, benefits_data, comparison_data, faq_data, video_with_features_data, ...productData } = productResData;
+            const { product_tags, product_categories, hero_data, features_data, benefits_data, comparison_data, faq_data, video_with_features_data, ...productData } = productResDataAny;
             setFormData({
                 name: productData.name || '',
                 description: productData.description || '',
@@ -202,12 +205,12 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
                 accordion_point3_title: productData.accordion_point3_title || '', accordion_point3_content: productData.accordion_point3_content || '',
                 accordion_point4_title: productData.accordion_point4_title || '', accordion_point4_content: productData.accordion_point4_content || '',
             });
-            setHeroData(hero_data as HeroData || initialHeroData);
-            setFeaturesData(features_data as FeaturesData || initialFeaturesData);
-            setBenefitsData(benefits_data as BenefitsData || initialBenefitsData);
-            setComparisonData(comparison_data as ComparisonData || initialComparisonData);
-            setFaqData(faq_data as FaqData || initialFaqData);
-            setVideoWithFeaturesData(video_with_features_data as VideoWithFeaturesData || initialVideoWithFeaturesData);
+            setHeroData((hero_data as HeroData) || initialHeroData);
+            setFeaturesData((features_data as FeaturesData) || initialFeaturesData);
+            setBenefitsData((benefits_data as BenefitsData) || initialBenefitsData);
+            setComparisonData((comparison_data as ComparisonData) || initialComparisonData);
+            setFaqData((faq_data as FaqData) || initialFaqData);
+            setVideoWithFeaturesData((video_with_features_data as VideoWithFeaturesData) || initialVideoWithFeaturesData);
             const tagIds = (product_tags || []).map((pt: any) => pt.tags?.id).filter(Boolean);
             setSelectedTags(new Set(tagIds));
             const categoryIds = (product_categories || []).map((pc: any) => pc.categories?.id).filter(Boolean);
@@ -375,7 +378,8 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
         setMessage({ type: 'error', text: 'La categoría ya existe.' });
         return;
     }
-    const { data, error } = await supabase.from('categories').insert([{ name: trimmedName }] as any).select().single();
+    
+    const { data, error }: PostgrestSingleResponse<Category> = await supabase.from('categories').insert([{ name: trimmedName }]).select().single();
     if (error) {
         setMessage({ type: 'error', text: 'Error al crear la categoría: ' + error.message });
     } else if (data) {
@@ -430,6 +434,8 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
     setMessage(null);
 
     try {
+        if (!supabase) throw new Error("Supabase client not initialized.");
+
         const [
           imgUrl1, imgUrl2, imgUrl3, imgUrl4, 
           heroImgUrl, featuresImgUrl, benefitsImgUrl
@@ -449,7 +455,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             return existingUrl ?? null;
         };
 
-        const dbData: Omit<Database['public']['Tables']['products']['Insert'], 'created_at'> & { id?: string } = {
+        const dbData: Database['public']['Tables']['products']['Insert'] = {
           name: formData.name,
           description: formData.description,
           price: Number(formData.price),
@@ -473,15 +479,15 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
           hero_data: { ...heroData, imageUrl: getFinalImageUrl(heroImgUrl, 'hero_image', heroData.imageUrl) } as unknown as Json,
           features_data: { ...featuresData, imageUrl: getFinalImageUrl(featuresImgUrl, 'features_image', featuresData.imageUrl) } as unknown as Json,
           benefits_data: { ...benefitsData, backgroundImageUrl: getFinalImageUrl(benefitsImgUrl, 'benefits_image', benefitsData.backgroundImageUrl) } as unknown as Json,
-          comparison_data: comparisonData.features.some(f => f.feature) ? (comparisonData as unknown as Json) : null,
-          faq_data: faqData.items.some(i => i.question) ? (faqData as unknown as Json) : null,
-          video_with_features_data: videoWithFeaturesData.features.some(f => f.title) ? (videoWithFeaturesData as unknown as Json) : null,
+          comparison_data: comparisonData.features.some(f => f.feature) ? comparisonData as unknown as Json : null,
+          faq_data: faqData.items.some(i => i.question) ? faqData as unknown as Json : null,
+          video_with_features_data: videoWithFeaturesData.features.some(f => f.title) ? videoWithFeaturesData as unknown as Json : null,
         };
 
         let productId = productIdToEdit;
-        const { data: productUpsertData, error } = isEditMode
-            ? await supabase.from('products').update(dbData as any).eq('id', productId!).select('id').single()
-            : await supabase.from('products').insert([dbData] as any).select('id').single();
+        const { data: productUpsertData, error }: PostgrestSingleResponse<{ id: string }> = isEditMode
+            ? await supabase.from('products').update(dbData as Database['public']['Tables']['products']['Update']).eq('id', productId!).select('id').single()
+            : await supabase.from('products').insert([dbData]).select('id').single();
 
         if (error) throw error;
         
@@ -496,7 +502,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             await supabase.from('product_tags').delete().eq('product_id', productId);
             const tagsToInsert = Array.from(selectedTags).map(tag_id => ({ product_id: productId!, tag_id }));
             if (tagsToInsert.length > 0) {
-                const { error: tagsError } = await supabase.from('product_tags').insert(tagsToInsert as any);
+                const { error: tagsError } = await supabase.from('product_tags').insert(tagsToInsert);
                 if (tagsError) throw new Error(`Producto guardado, pero falló la asignación de etiquetas: ${tagsError.message}`);
             }
             
@@ -504,7 +510,7 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
             await supabase.from('product_categories').delete().eq('product_id', productId);
             const categoriesToInsert = Array.from(selectedCategories).map(category_id => ({ product_id: productId!, category_id }));
             if (categoriesToInsert.length > 0) {
-                const { error: categoriesError } = await supabase.from('product_categories').insert(categoriesToInsert as any);
+                const { error: categoriesError } = await supabase.from('product_categories').insert(categoriesToInsert);
                 if (categoriesError) throw new Error(`Producto guardado, pero falló la asignación de categorías: ${categoriesError.message}`);
             }
         }
@@ -601,57 +607,142 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
                     </div>
                 )}
                 {activeTab === 'accordion' && <div className="space-y-6">{[1, 2, 3, 4].map(index => (<div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50/80"><h4 className="font-semibold text-gray-600">Punto {index}</h4><div><label htmlFor={`accordion_point${index}_title`} className="block text-sm font-medium text-gray-700">Título</label><input type="text" id={`accordion_point${index}_title`} name={`accordion_point${index}_title`} value={(formData as any)[`accordion_point${index}_title`]} onChange={handleInputChange} className={inputClass} /></div><div><label htmlFor={`accordion_point${index}_content`} className="block text-sm font-medium text-gray-700">Contenido</label><textarea id={`accordion_point${index}_content`} name={`accordion_point${index}_content`} value={(formData as any)[`accordion_point${index}_content`]} onChange={handleInputChange} rows={2} className={inputClass}></textarea></div></div>))}</div>}
-                {activeTab === 'hero' && <div className="space-y-6"><div><label htmlFor="hero_title" className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={heroData.title} onChange={e => handleDynamicDataChange('hero', 'title', e.target.value)} className={inputClass} /></div><div><label htmlFor="hero_subtitle" className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={heroData.subtitle} onChange={e => handleDynamicDataChange('hero', 'subtitle', e.target.value)} className={inputClass} /></div><ImageUploader id="hero_image" label="Imagen Hero" existingImageUrl={deletedImageKeys.has('hero_image') ? null : heroData.imageUrl} imageFile={imageFiles['hero_image']} onFileChange={handleFileChange} />{heroData.benefits.map((benefit, index) => (<div key={index} className="p-4 border rounded-lg flex items-end gap-4"><div className="flex-grow"><label className="text-sm font-medium text-gray-700">Beneficio {index + 1}</label><div className="flex gap-2"><div className="w-1/3"><label className="text-xs">Icono</label><select value={benefit.icon} onChange={e => handleListItemChange('hero', index, 'icon', e.target.value)} className={inputClass}><option disabled>Seleccionar</option>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div><div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={benefit.title} onChange={e => handleListItemChange('hero', index, 'title', e.target.value)} className={inputClass} /></div></div></div><button type="button" onClick={() => removeListItem('hero', index)} className="text-red-500 hover:text-red-700 p-2"><TrashIcon/></button></div>))}<button type="button" onClick={() => addListItem('hero')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Beneficio</button></div>}
-                {activeTab === 'features' && <div className="space-y-6"><div><label className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={featuresData.title} onChange={e => handleDynamicDataChange('features', 'title', e.target.value)} className={inputClass} /></div><div><label className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={featuresData.subtitle} onChange={e => handleDynamicDataChange('features', 'subtitle', e.target.value)} className={inputClass} /></div><ImageUploader id="features_image" label="Imagen Features" existingImageUrl={deletedImageKeys.has('features_image') ? null : featuresData.imageUrl} imageFile={imageFiles['features_image']} onFileChange={handleFileChange} />{featuresData.features.map((feature, index) => (<div key={index} className="p-4 border rounded-lg space-y-2"><div className="flex justify-between items-center"><label className="text-sm font-medium text-gray-700">Característica {index + 1}</label><button type="button" onClick={() => removeListItem('features', index)} className="text-red-500 hover:text-red-700"><TrashIcon/></button></div><div className="flex gap-2"><div className="w-1/3"><label className="text-xs">Icono</label><select value={feature.icon} onChange={e => handleListItemChange('features', index, 'icon', e.target.value)} className={inputClass}>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div><div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={feature.title} onChange={e => handleListItemChange('features', index, 'title', e.target.value)} className={inputClass} /></div></div><div><label className="text-xs">Descripción</label><textarea value={feature.description} onChange={e => handleListItemChange('features', index, 'description', e.target.value)} className={inputClass} rows={2}/></div></div>))}<button type="button" onClick={() => addListItem('features')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Característica</button></div>}
-                {activeTab === 'benefits' && <div className="space-y-6"><ImageUploader id="benefits_image" label="Imagen de Fondo" existingImageUrl={deletedImageKeys.has('benefits_image') ? null : benefitsData.backgroundImageUrl} imageFile={imageFiles['benefits_image']} onFileChange={handleFileChange} />{benefitsData.benefits.map((benefit, index) => (<div key={index} className="p-4 border rounded-lg space-y-2"><div className="flex justify-between items-center"><label className="text-sm font-medium text-gray-700">Beneficio {index + 1}</label><button type="button" onClick={() => removeListItem('benefits', index)} className="text-red-500 hover:text-red-700"><TrashIcon/></button></div><div className="flex gap-2"><div className="w-1/3"><label className="text-xs">Icono</label><select value={benefit.icon} onChange={e => handleListItemChange('benefits', index, 'icon', e.target.value)} className={inputClass}>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div><div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={benefit.title} onChange={e => handleListItemChange('benefits', index, 'title', e.target.value)} className={inputClass} /></div></div><div><label className="text-xs">Descripción</label><textarea value={benefit.description} onChange={e => handleListItemChange('benefits', index, 'description', e.target.value)} className={inputClass} rows={2}/></div></div>))}<button type="button" onClick={() => addListItem('benefits')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Beneficio</button></div>}
+                
+                {activeTab === 'hero' && 
+                    <div className="space-y-6">
+                        <div><label htmlFor="hero_title" className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={heroData.title} onChange={e => handleDynamicDataChange('hero', 'title', e.target.value)} className={inputClass} /></div>
+                        <div><label htmlFor="hero_subtitle" className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={heroData.subtitle} onChange={e => handleDynamicDataChange('hero', 'subtitle', e.target.value)} className={inputClass} /></div>
+                        <ImageUploader id="hero_image" label="Imagen Hero" existingImageUrl={deletedImageKeys.has('hero_image') ? null : heroData.imageUrl} imageFile={imageFiles['hero_image']} onFileChange={handleFileChange} />
+                        {heroData.benefits.map((benefit, index) => (
+                            <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50/80">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-gray-700">Beneficio {index + 1}</label>
+                                    <button type="button" onClick={() => removeListItem('hero', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="w-1/3"><label className="text-xs">Icono</label><select value={benefit.icon} onChange={e => handleListItemChange('hero', index, 'icon', e.target.value)} className={inputClass}><option disabled>Seleccionar</option>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div>
+                                    <div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={benefit.title} onChange={e => handleListItemChange('hero', index, 'title', e.target.value)} className={inputClass} /></div>
+                                </div>
+                            </div>
+                        ))}
+                        <button type="button" onClick={() => addListItem('hero')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Beneficio
+                        </button>
+                    </div>
+                }
+
+                {activeTab === 'features' && 
+                    <div className="space-y-6">
+                        <div><label className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={featuresData.title} onChange={e => handleDynamicDataChange('features', 'title', e.target.value)} className={inputClass} /></div>
+                        <div><label className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={featuresData.subtitle} onChange={e => handleDynamicDataChange('features', 'subtitle', e.target.value)} className={inputClass} /></div>
+                        <ImageUploader id="features_image" label="Imagen Features" existingImageUrl={deletedImageKeys.has('features_image') ? null : featuresData.imageUrl} imageFile={imageFiles['features_image']} onFileChange={handleFileChange} />
+                        {featuresData.features.map((feature, index) => (
+                            <div key={index} className="p-4 border rounded-lg space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-gray-700">Característica {index + 1}</label>
+                                    <button type="button" onClick={() => removeListItem('features', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="w-1/3"><label className="text-xs">Icono</label><select value={feature.icon} onChange={e => handleListItemChange('features', index, 'icon', e.target.value)} className={inputClass}>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div>
+                                    <div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={feature.title} onChange={e => handleListItemChange('features', index, 'title', e.target.value)} className={inputClass} /></div>
+                                </div>
+                                <div><label className="text-xs">Descripción</label><textarea value={feature.description} onChange={e => handleListItemChange('features', index, 'description', e.target.value)} className={inputClass} rows={2}/></div>
+                            </div>
+                        ))}
+                        <button type="button" onClick={() => addListItem('features')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Característica
+                        </button>
+                    </div>
+                }
+
+                {activeTab === 'benefits' && 
+                    <div className="space-y-6">
+                        <ImageUploader id="benefits_image" label="Imagen de Fondo" existingImageUrl={deletedImageKeys.has('benefits_image') ? null : benefitsData.backgroundImageUrl} imageFile={imageFiles['benefits_image']} onFileChange={handleFileChange} />
+                        {benefitsData.benefits.map((benefit, index) => (
+                            <div key={index} className="p-4 border rounded-lg space-y-2">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-gray-700">Beneficio {index + 1}</label>
+                                    <button type="button" onClick={() => removeListItem('benefits', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
+                                <div className="flex gap-2">
+                                    <div className="w-1/3"><label className="text-xs">Icono</label><select value={benefit.icon} onChange={e => handleListItemChange('benefits', index, 'icon', e.target.value)} className={inputClass}>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div>
+                                    <div className="w-2/3"><label className="text-xs">Título</label><input type="text" value={benefit.title} onChange={e => handleListItemChange('benefits', index, 'title', e.target.value)} className={inputClass} /></div>
+                                </div>
+                                <div><label className="text-xs">Descripción</label><textarea value={benefit.description} onChange={e => handleListItemChange('benefits', index, 'description', e.target.value)} className={inputClass} rows={2}/></div>
+                            </div>
+                        ))}
+                        <button type="button" onClick={() => addListItem('benefits')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Beneficio
+                        </button>
+                    </div>
+                }
+                
                 {activeTab === 'comparison' && (
                     <div className="space-y-6">
                         <div><label className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={comparisonData.title} onChange={e => handleDynamicDataChange('comparison', 'title', e.target.value)} className={inputClass} /></div>
                         <div><label className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={comparisonData.subtitle} onChange={e => handleDynamicDataChange('comparison', 'subtitle', e.target.value)} className={inputClass} /></div>
-                        
                         <h4 className="font-semibold text-gray-700 pt-4 border-t">Puntos de Comparación</h4>
                         {comparisonData.features.map((feature, index) => (
-                            <div key={index} className="p-4 border rounded-lg flex items-center gap-4 bg-gray-50/80">
-                                <div className="flex-grow">
+                            <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50/80">
+                                <div className="flex justify-between items-center">
                                     <label className="text-sm font-medium text-gray-700">Característica {index + 1}</label>
-                                    <input type="text" value={feature.feature} onChange={e => handleListItemChange('comparison', index, 'feature', e.target.value)} className={inputClass} />
+                                    <button type="button" onClick={() => removeListItem('comparison', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
                                 </div>
-                                <div className="flex flex-col gap-2">
+                                <div><label className="text-xs">Descripción de la Característica</label><input type="text" placeholder="Ej: Ingredientes Naturales" value={feature.feature} onChange={e => handleListItemChange('comparison', index, 'feature', e.target.value)} className={inputClass} /></div>
+                                <div className="flex gap-4 pt-2">
                                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={feature.ours} onChange={e => handleListItemChange('comparison', index, 'ours', e.target.checked)} className="rounded text-pink-600 focus:ring-pink-500" /> Nuestro producto</label>
                                   <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={feature.theirs} onChange={e => handleListItemChange('comparison', index, 'theirs', e.target.checked)} className="rounded text-pink-600 focus:ring-pink-500" /> Otros</label>
                                 </div>
-                                <button type="button" onClick={() => removeListItem('comparison', index)} className="text-red-500 hover:text-red-700 p-2 self-end"><TrashIcon/></button>
                             </div>
                         ))}
-                        <button type="button" onClick={() => addListItem('comparison')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Característica</button>
+                        <button type="button" onClick={() => addListItem('comparison')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Característica
+                        </button>
                     </div>
                 )}
+                
                 {activeTab === 'faq' && (
                     <div className="space-y-6">
                         <div><label className="block text-sm font-medium text-gray-700">Título de la Sección</label><input type="text" value={faqData.title} onChange={e => handleDynamicDataChange('faq', 'title', e.target.value)} className={inputClass} /></div>
-                        
                         <h4 className="font-semibold text-gray-700 pt-4 border-t">Preguntas y Respuestas</h4>
                         {faqData.items.map((item, index) => (
                             <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50/80">
-                                <div className="flex justify-between items-center"><label className="text-sm font-medium text-gray-700">Pregunta {index + 1}</label><button type="button" onClick={() => removeListItem('faq', index)} className="text-red-500 hover:text-red-700"><TrashIcon/></button></div>
+                                <div className="flex justify-between items-center">
+                                    <label className="text-sm font-medium text-gray-700">Pregunta {index + 1}</label>
+                                    <button type="button" onClick={() => removeListItem('faq', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
+                                </div>
                                 <div><label className="text-xs">Pregunta</label><input type="text" value={item.question} onChange={e => handleListItemChange('faq', index, 'question', e.target.value)} className={inputClass} /></div>
                                 <div><label className="text-xs">Respuesta</label><textarea value={item.answer} onChange={e => handleListItemChange('faq', index, 'answer', e.target.value)} className={inputClass} rows={3}/></div>
                             </div>
                         ))}
-                        <button type="button" onClick={() => addListItem('faq')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Pregunta</button>
+                        <button type="button" onClick={() => addListItem('faq')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Pregunta
+                        </button>
                     </div>
                 )}
+
                 {activeTab === 'video-features' && (
                     <div className="space-y-6">
                         <div><label className="block text-sm font-medium text-gray-700">Título</label><input type="text" value={videoWithFeaturesData.title} onChange={e => handleDynamicDataChange('video-features', 'title', e.target.value)} className={inputClass} /></div>
                         <div><label className="block text-sm font-medium text-gray-700">URL del Vídeo (YouTube)</label><input type="url" value={videoWithFeaturesData.videoUrl} onChange={e => handleDynamicDataChange('video-features', 'videoUrl', e.target.value)} placeholder="https://www.youtube.com/watch?v=..." className={inputClass} /></div>
-                        
                         <h4 className="font-semibold text-gray-700 pt-4 border-t">Puntos Clave</h4>
                         {videoWithFeaturesData.features.map((feature, index) => (
                             <div key={index} className="p-4 border rounded-lg space-y-2 bg-gray-50/80">
                                 <div className="flex justify-between items-center">
                                     <label className="text-sm font-medium text-gray-700">Punto {index + 1}</label>
-                                    <button type="button" onClick={() => removeListItem('video-features', index)} className="text-red-500 hover:text-red-700"><TrashIcon/></button>
+                                    <button type="button" onClick={() => removeListItem('video-features', index)} className="text-red-500 hover:text-red-700 p-1">
+                                        <TrashIcon className="w-5 h-5" />
+                                    </button>
                                 </div>
                                 <div className="flex gap-2">
                                     <div className="w-1/3"><label className="text-xs">Icono</label><select value={feature.icon} onChange={e => handleListItemChange('video-features', index, 'icon', e.target.value)} className={inputClass}><option disabled>Seleccionar</option>{iconKeys.map(key => <option key={key} value={key}>{key}</option>)}</select></div>
@@ -660,7 +751,9 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
                                 <div><label className="text-xs">Subtítulo</label><textarea value={feature.subtitle} onChange={e => handleListItemChange('video-features', index, 'subtitle', e.target.value)} className={inputClass} rows={2}/></div>
                             </div>
                         ))}
-                        <button type="button" onClick={() => addListItem('video-features')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1"><PlusIcon/> Añadir Punto Clave</button>
+                        <button type="button" onClick={() => addListItem('video-features')} className="text-sm font-semibold text-pink-600 hover:text-pink-800 flex items-center gap-1">
+                            <PlusIcon className="w-5 h-5" /> Añadir Punto Clave
+                        </button>
                     </div>
                 )}
 
@@ -676,5 +769,3 @@ const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, 
     </div>
   );
 };
-
-export default ProductUploadPage;

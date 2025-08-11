@@ -1,13 +1,7 @@
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { DiscountCode, Profile } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 
@@ -41,7 +35,7 @@ const DiscountCodeManagementPage: React.FC<DiscountCodeManagementPageProps> = (p
         return;
       }
       setLoading(true);
-      const { data, error } = await supabase
+      const { data, error }: PostgrestResponse<DiscountCode> = await supabase
         .from('discount_codes')
         .select('*')
         .order('created_at', { ascending: false });
@@ -49,7 +43,7 @@ const DiscountCodeManagementPage: React.FC<DiscountCodeManagementPageProps> = (p
       if (error) {
         setError(error.message);
       } else {
-        setCodes(data as DiscountCode[]);
+        setCodes(data || []);
       }
       setLoading(false);
     };

@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { DiscountCode, Profile, SupabaseProduct } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestSingleResponse, PostgrestResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { Database } from '../lib/database.types';
@@ -43,7 +42,7 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
     const isEditMode = !!discountCodeIdToEdit;
     const [formData, setFormData] = useState<DiscountCodeUpsertData>(initialFormState);
     const [useUsageLimit, setUseUsageLimit] = useState(false);
-    const [products, setProducts] = useState<SupabaseProduct[]>([]);
+    const [products, setProducts] = useState<{id: string, name: string}[]>([]);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -56,11 +55,11 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
             const { data: productsData, error: productsError } = await supabase
                 .from('products').select('id, name').order('name');
             if(productsError) setMessage({ type: 'error', text: 'Error al cargar productos: ' + productsError.message });
-            else setProducts(productsData || []);
+            else setProducts((productsData as unknown as {id: string, name: string}[]) || []);
 
             // If editing, fetch the discount code data
             if (isEditMode && discountCodeIdToEdit) {
-                const { data, error } = await supabase.from('discount_codes').select('*').eq('id', discountCodeIdToEdit).single();
+                const { data, error }: PostgrestSingleResponse<DiscountCode> = await supabase.from('discount_codes').select('*').eq('id', discountCodeIdToEdit).single();
                 if (error) {
                     setMessage({ type: 'error', text: 'Error al cargar el código: ' + error.message });
                 } else if (data) {
@@ -118,8 +117,8 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
 
         try {
             const { error } = isEditMode
-                ? await supabase.from('discount_codes').update(dataToUpsert as any).eq('id', discountCodeIdToEdit!)
-                : await supabase.from('discount_codes').insert([dataToUpsert] as any);
+                ? await supabase.from('discount_codes').update(dataToUpsert).eq('id', discountCodeIdToEdit!)
+                : await supabase.from('discount_codes').insert([dataToUpsert]);
             
             if (error) throw error;
 

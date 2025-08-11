@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { XMarkIcon, UserIcon, ChatIcon, MapPinIcon, AtSymbolIcon, ShoppingBagIcon, WalletIcon, ChevronDownIcon } from '../product_detail_page/Icons';
-import type { CartItem, DiscountCode, Order } from '../../types';
+import type { CartItem, DiscountCode, Order, Json } from '../../types';
 import { peruLocations } from '../../lib/peruLocations';
 import { supabase } from '../../lib/supabaseClient';
+import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import type { Database } from '../../lib/database.types';
 
 interface CheckoutPopupProps {
   isOpen: boolean;
@@ -207,7 +210,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
       setAppliedDiscountCode(null);
       setDiscountAmount(0);
 
-      const { data: codeData, error } = await supabase
+      const { data: codeData, error }: PostgrestSingleResponse<DiscountCode> = await supabase
         .from('discount_codes')
         .select('id, code, discount_type, discount_value, limitation_type, start_date, end_date, usage_limit, times_used, scope, product_id, is_active')
         .ilike('code', codeToVerify)
@@ -304,18 +307,18 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
 
     try {
         if (supabase) {
-            const orderData: Omit<Order, 'id' | 'created_at'> = {
+            const orderData: Database['public']['Tables']['orders']['Insert'] = {
                 full_name: formData.fullName,
                 email: formData.email,
                 phone: formData.phone,
                 address: formData.address,
-                reference: formData.reference,
+                reference: formData.reference || null,
                 department: formData.department,
                 province: formData.province,
                 district: formData.district,
                 shipping_method: shippingMethod,
                 payment_method: paymentMethod,
-                cart_items: items,
+                cart_items: items as unknown as Json,
                 upsell_included: isUpsellChecked,
                 total_amount: total,
                 discount_code: appliedDiscountCode ? appliedDiscountCode.code : null,

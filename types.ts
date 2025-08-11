@@ -1,4 +1,5 @@
 
+
 import type { Json as SupabaseJson } from './lib/database.types';
 
 export type Json = SupabaseJson;
@@ -196,7 +197,7 @@ export interface Order {
   district: string;
   shipping_method?: string | null;
   payment_method: string;
-  cart_items: CartItem[];
+  cart_items: Json;
   upsell_included: boolean;
   total_amount: number;
   discount_code?: string | null;

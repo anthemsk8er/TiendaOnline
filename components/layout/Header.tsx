@@ -112,8 +112,8 @@ const Header: React.FC<HeaderProps> = ({
             </nav>
           </div>
           <div className="flex-shrink-0">
-            <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} aria-label="Back to homepage" className="text-4xl font-bold tracking-tighter">
-              <span className="text-orange-500 text-md">Shop Natural 🇵🇪</span>
+            <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} aria-label="Back to homepage">
+              <img src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/header/ketonaturalshop.svg" alt="KetoNatural Shop Logo" className="h-8 w-auto" />
             </a>
           </div>
           <div className="flex flex-1 items-center justify-end gap-2">

@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface FooterProps {
@@ -13,8 +14,8 @@ const Footer: React.FC<FooterProps> = ({ onLegalClick, onCatalogClick, onHomeCli
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="col-span-2 md:col-span-1">
-                        <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} aria-label="Back to homepage" className="text-4xl font-bold tracking-tighter">
-              <span className="text-orange-500">Shop Natural</span>
+            <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} aria-label="Back to homepage">
+              <img src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/header/ketonaturalshop.svg" alt="KetoNatural Shop Logo" className="h-8 w-auto" />
             </a>
             <p className="mt-2 text-sm text-gray-600">Suplementos de alta calidad.</p>
           </div>
@@ -44,7 +45,7 @@ const Footer: React.FC<FooterProps> = ({ onLegalClick, onCatalogClick, onHomeCli
           </div>
         </div>
         <div className="mt-8 pt-8 border-t text-center text-sm text-gray-500">
-          <p>&copy; {new Date().getFullYear()} Keto Burner KetoShop -  Todos los derechos reservados.</p>
+          <p>&copy; {new Date().getFullYear()} Keto Burner KetoNatural Shop -  Todos los derechos reservados.</p>
         </div>
       </div>
     </footer>

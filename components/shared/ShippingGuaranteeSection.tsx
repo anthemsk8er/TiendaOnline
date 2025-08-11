@@ -47,7 +47,7 @@ const ShippingGuaranteeSection: React.FC = () => {
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Aceptamos</h3>
               <div className="flex items-center gap-4 mt-3">
                 {paymentMethods.map(method => (
-                  <img key={method.name} src={method.logoUrl} alt={method.name} title={method.name} className="h-12 object-contain" width="80" height="48" loading="lazy" />
+                  <img key={method.name} src={`${method.logoUrl}?width=80&quality=75`} alt={method.name} title={method.name} className="h-12 object-contain" width="80" height="48" loading="lazy" />
                 ))}
               </div>
             </div>
@@ -55,7 +55,7 @@ const ShippingGuaranteeSection: React.FC = () => {
               <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">Nuestros Aliados de Envío</h3>
               <div className="flex items-center gap-6 mt-3">
                 {couriers.map(courier => (
-                  <img key={courier.name} src={courier.logoUrl} alt={courier.name} title={courier.name} className="h-12 object-contain" width="80" height="48" loading="lazy" />
+                  <img key={courier.name} src={`${courier.logoUrl}?width=80&quality=75`} alt={courier.name} title={courier.name} className="h-12 object-contain" width="80" height="48" loading="lazy" />
                 ))}
               </div>
             </div>
@@ -86,7 +86,7 @@ const ShippingGuaranteeSection: React.FC = () => {
             </ul>
             <div className="mt-6 pt-6 border-t border-gray-200">
               <img 
-                src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/sections/envios.jpg" 
+                src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/sections/envios.jpg?width=530&quality=80" 
                 alt="Garantía de calidad" 
                 className="w-full h-48 object-cover rounded-lg"
                 width="530" height="192" loading="lazy"

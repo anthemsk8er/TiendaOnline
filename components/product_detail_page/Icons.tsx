@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 
 export const StarIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -117,7 +119,7 @@ export const WellbeingIcon: React.FC<{className?: string; strokeWidth?: number}>
 
 export const LeafIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.82m5.84-2.56a12.022 12.022 0 0 0-5.84 0m5.84 0a12.003 12.003 0 0 0-11.68 0m11.68 0c1.72-1.023 2.895-2.906 3.195-5.036m-12.87 5.036c.3-2.13 1.475-4.013 3.195-5.036m4.48 0c-.3-2.13-1.475-4.013-3.195-5.036C9.18 3.23 7.82.946 6.345 0" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.82m5.84-2.56a12.022 12.022 0 0 0-5.84 0m5.84 0a12.003 12.003 0 0 0-11.68 0m11.68 0c1.72-1.023 2.895-2.906 3.195-5.036m-12.87 5.036c.3-2.13 1.475-4.013 3.195-5.036C9.18 3.23 7.82.946 6.345 0" />
   </svg>
 );
 
@@ -207,6 +209,12 @@ export const WalletIcon: React.FC<{className?: string; strokeWidth?: number}> = 
     </svg>
 );
 
+export const ChevronLeftIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-5 h-5", strokeWidth = 2.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+    </svg>
+);
+
 export const ChevronRightIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-5 h-5", strokeWidth = 2.5 }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
         <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
@@ -222,12 +230,6 @@ export const ArrowRightIcon: React.FC<{className?: string; strokeWidth?: number}
 export const TrashIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-    </svg>
-);
-
-export const WhatsAppIcon: React.FC<{className?: string}> = ({ className }) => (
-    <svg fill="currentColor" className={className} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.894 11.892-1.99 0-3.903-.52-5.586-1.456l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-1.011z"/>
     </svg>
 );
 

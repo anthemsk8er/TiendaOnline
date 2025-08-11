@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { CheckCircleIcon, XMarkIcon } from './Icons';
 import type { ComparisonData } from '../../types';

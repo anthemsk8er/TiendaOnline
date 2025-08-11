@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Review } from '../../types';
 import StarRating from './StarRating';
@@ -35,7 +36,7 @@ const ReviewCard: React.FC<ReviewCardProps> = ({ review }) => {
       {review.image_url && (
         <div className="mt-4">
           <img 
-            src={review.image_url} 
+            src={`${review.image_url}?width=320&quality=80`} 
             alt={`Comentario de ${review.author_name}`} 
             className="max-w-full sm:max-w-xs h-auto rounded-lg object-cover cursor-pointer hover:opacity-90 transition-opacity"
             loading="lazy"

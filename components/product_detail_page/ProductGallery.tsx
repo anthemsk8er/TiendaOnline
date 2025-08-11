@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface ProductGalleryProps {
@@ -58,7 +59,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
           </div>
         ) : (
           <img
-            src={mainDisplay.src}
+            src={`${mainDisplay.src}?width=800&height=800&resize=cover&quality=85`}
             alt="Product"
             className="w-full h-full object-cover"
             width="800"
@@ -76,7 +77,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
                 aria-label="Reproducir video"
             >
                 <img
-                    src={images[0]?.replace('/800/800', '/100/100')} // Use first image for thumbnail bg and optional chaining for safety
+                    src={images[0] ? `${images[0]}?width=100&height=100&resize=cover&quality=75` : ''}
                     alt="Video thumbnail"
                     className="w-full h-full object-cover brightness-75"
                     width="100"
@@ -100,7 +101,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
             }`}
           >
             <img
-              src={image.replace('/800/800', '/100/100')} // Use smaller images for thumbnails
+              src={`${image}?width=100&height=100&resize=cover&quality=75`}
               alt={`Thumbnail ${index + 1}`}
               className="w-full h-full object-cover"
               width="100"

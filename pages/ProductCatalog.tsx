@@ -100,7 +100,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         {/* Banner Section */}
         <section 
           className="h-40 bg-cover bg-center flex items-center justify-center text-white"
-          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bannerImage})`}}
+          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bannerImage}?width=1920&quality=75)`}}
         >
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight animate-fade-in-up">{title}</h1>
         </section>

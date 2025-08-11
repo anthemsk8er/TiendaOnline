@@ -1,10 +1,7 @@
-
-
-
-
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 import type { CartItem, Product, Profile } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { ArrowRightIcon } from '../components/product_detail_page/Icons';
@@ -23,6 +20,15 @@ const categories = [
     { name: 'Belleza', image: 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/categories/belleza.jpg' },
     { name: 'Digestión', image: 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/categories/digestion.jpg' },
 ];
+
+const heroData = {
+    url: 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/citratodemagnesio.jpg',
+    alt: 'Promo Citrato de Magnesio',
+    title: 'Despierta tu Potencial',
+    subtitle: 'Suplementos naturales para darte la energía que necesitas cada día.',
+    buttonText: 'Quiero la oferta',
+};
+
 
 interface HomePageProps {
   onProductClick: (productId: string) => void;
@@ -52,6 +58,28 @@ const HomePage: React.FC<HomePageProps> = ({
 }) => {
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [citratoProductId, setCitratoProductId] = useState<string | null>(null);
+    
+    useEffect(() => {
+        const fetchCitratoId = async () => {
+            if (!supabase) return;
+            // Fetch the product ID for Citrato de Magnesio to link the hero button correctly.
+            const { data, error }: PostgrestSingleResponse<{ id: string }> = await supabase
+                .from('products')
+                .select('id')
+                .ilike('name', '%citrato de magnesio%')
+                .limit(1)
+                .single();
+            
+            if (error && error.code !== 'PGRST116') {
+                console.warn("Hero button product 'Citrato de Magnesio' not found, falling back to category link:", error.message);
+            } else if (data) {
+                setCitratoProductId(data.id);
+            }
+        };
+
+        fetchCitratoId();
+    }, []);
 
     const handleOpenCart = () => setIsCartOpen(true);
     const handleProceedToCheckout = () => {
@@ -92,30 +120,39 @@ const HomePage: React.FC<HomePageProps> = ({
                 showAuthModal={showAuthModal}
             />
             <main>
-                {/* Banner Section with Image */}
-                <section className="relative h-[60vh] md:h-[60vh] flex flex-col items-center justify-center text-white text-center px-4 overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-full z-10"></div>
-                    <img
-                        src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/promo_energia_natural.jpg"
-                        alt="Promo Energía"
-                        className="absolute top-0 left-0 w-full h-full object-cover z-0"
-                        width="1280"
-                        height="853"
-                        fetchPriority="high"
-                    />
-                    <div className="relative z-20 flex flex-col items-center">
-       
-                       {/*  <button 
-                            onClick={() => onCatalogClick()}
-                            className="mt-40 bg-blue-700 text-white font-bold py-3 px-8 rounded-full hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 text-lg shadow-lg animate-fade-in-up delay-200"
+
+            
+                {/* Static Hero Section */}
+                <section className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden">
+                    <div className="absolute inset-0">
+                        <img
+                            src={`${heroData.url}?w=auto&quality=80`}
+                            alt={heroData.alt}
+                            className="w-full h-full object-cover object-center"
+                            fetchPriority="high"
+                            loading="eager"
+                        />
+                    </div>
+                    <div className="absolute inset-0 bg-black/10"></div>
+                    <div className="relative z-10 flex flex-col items-center justify-center text-center text-white mt-8 h-full">
+               
+                        <button
+                            onClick={() => {
+                                if (citratoProductId) {
+                                    onProductClick(citratoProductId);
+                                } else {
+                                    // Fallback to the 'Energía' category if product not found
+                                    onCatalogClick('Energía');
+                                }
+                            }}
+                            className="mt-8 bg-red-600 text-white font-bold py-3 px-8 rounded-full hover:bg-red-700 transition-colors flex items-center justify-center gap-2 text-lg shadow-lg animate-fade-in-up delay-400"
                         >
-                            Ver Catálogo <ArrowRightIcon className="w-5 h-5" />
+                            {heroData.buttonText} <ArrowRightIcon className="w-5 h-5" />
                         </button>
-                        */}
                     </div>
                 </section>
 
-                
+
 
                 {/* Featured Products Section */}
                 <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
@@ -159,7 +196,7 @@ const HomePage: React.FC<HomePageProps> = ({
                                     style={{ animationDelay: `${200 + index * 50}ms` }}
                                 >
                                     <div className="aspect-square bg-gray-200 rounded-full overflow-hidden w-3/4 mx-auto shadow-md group-hover:shadow-xl transition-shadow">
-                                        <img src={cat.image} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" width="200" height="200"/>
+                                        <img src={`${cat.image}?width=200&height=200&resize=cover&quality=80`} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" loading="lazy" width="200" height="200"/>
                                     </div>
                                     <h3 className="mt-4 font-semibold text-lg text-gray-800 group-hover:text-green-600">{cat.name}</h3>
                                 </a>

@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react';
 import type { Product, Review, CartItem, SupabaseProduct, Tag, Category, AccordionItem, HeroData, FeaturesData, BenefitsData, ComparisonData, FaqData, Profile, VideoWithFeaturesData } from '../types';
-import type { Session, PostgrestError } from '@supabase/supabase-js';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -44,6 +43,11 @@ interface ProductDetailPageProps {
   showAuthModal: (view: 'login' | 'register') => void;
 }
 
+type ProductData = Omit<SupabaseProduct, 'categories' | 'tags'> & {
+    product_categories: { categories: Category | null }[];
+    product_tags: { tags: Tag | null }[];
+};
+
 const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ 
   productId, 
   onProductClick, 
@@ -83,7 +87,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       setLoading(true);
       setError(null);
       try {
-        const { data, error: fetchError }: { data: any | null, error: PostgrestError | null } = await supabase
+        const { data, error: fetchError }: PostgrestResponse<ProductData> = await supabase
           .from('products')
           .select(`
             *,
@@ -96,13 +100,14 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         if (fetchError) throw fetchError;
         
         if (data) {
+          const productData = data as any;
           const transformedProduct = {
-            ...data,
-            tags: (data.product_tags || [])
-                .map((pt) => pt.tags)
+            ...productData,
+            tags: (productData.product_tags || [])
+                .map((pt: any) => pt.tags)
                 .filter((t): t is Tag => t !== null),
-            categories: (data.product_categories || [])
-                .map((pc) => pc.categories)
+            categories: (productData.product_categories || [])
+                .map((pc: any) => pc.categories)
                 .filter((c): c is Category => c !== null),
           };
           setProduct(transformedProduct as SupabaseProduct);

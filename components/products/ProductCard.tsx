@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { SupabaseProduct, Product } from '../../types';
 
@@ -42,7 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
       <div className="relative">
         <div className="aspect-square bg-gray-100 overflow-hidden">
             <img
-            src={product.image_url || 'https://picsum.photos/id/21/400/400'}
+            src={`${product.image_url}?width=400&height=400&resize=cover&quality=80`}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"

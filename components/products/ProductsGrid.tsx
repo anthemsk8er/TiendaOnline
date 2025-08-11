@@ -94,7 +94,7 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
             if (tagFilter) query = query.eq('product_tags.tags.name', tagFilter);
             if (vendorFilter) query = query.eq('vendor', vendorFilter);
 
-            const { data, error: fetchError, count }: PostgrestResponse<ProductWithRelations> = await query;
+            const { data, error: fetchError, count }: PostgrestResponse<ProductWithRelations[]> = await query;
             
             if (fetchError) throw fetchError;
 

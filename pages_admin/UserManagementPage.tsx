@@ -59,7 +59,7 @@ const UserManagementPage: React.FC<UserManagementPageProps> = (props) => {
     
     const { error } = await supabase
       .from('profiles')
-      .update({ role: newRole })
+      .update({ role: newRole } as any)
       .eq('id', userId);
 
     if (error) {

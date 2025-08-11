@@ -34,7 +34,7 @@ const OrdersPage: React.FC<OrdersPageProps> = (props) => {
         return;
       }
       setLoading(true);
-      const { data, error }: PostgrestResponse<Order> = await supabase
+      const { data, error }: PostgrestResponse<Order[]> = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false });

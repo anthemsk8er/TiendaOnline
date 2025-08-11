@@ -39,7 +39,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
       return;
     }
     setLoading(true);
-    const { data, error: fetchError }: PostgrestResponse<ReviewWithProduct> = await supabase
+    const { data, error: fetchError }: PostgrestResponse<ReviewWithProduct[]> = await supabase
       .from('reviews')
       .select('*, products(name)')
       .order('created_at', { ascending: false });
@@ -63,7 +63,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
   const handleApprove = async (reviewId: string) => {
     setMessage(null);
     if (!supabase) return;
-    const { error } = await supabase.from('reviews').update({ is_approved: true }).eq('id', reviewId);
+    const { error } = await supabase.from('reviews').update({ is_approved: true } as any).eq('id', reviewId);
     if (error) {
         setMessage({ type: 'error', text: `Error al aprobar: ${error.message}`});
     } else {

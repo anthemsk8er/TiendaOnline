@@ -35,7 +35,7 @@ const DiscountCodeManagementPage: React.FC<DiscountCodeManagementPageProps> = (p
         return;
       }
       setLoading(true);
-      const { data, error }: PostgrestResponse<DiscountCode> = await supabase
+      const { data, error }: PostgrestResponse<DiscountCode[]> = await supabase
         .from('discount_codes')
         .select('*')
         .order('created_at', { ascending: false });

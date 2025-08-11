@@ -92,7 +92,7 @@ const App = () => {
             if (session?.user && supabase) {
                 setLoadingProfile(true);
                 // Fetch profile from 'profiles' table
-                const { data: profileData, error }: PostgrestSingleResponse<{ full_name: string; role: string; }> = await supabase
+                const { data: profileData, error } = await supabase
                     .from('profiles')
                     .select('full_name, role')
                     .eq('id', session.user.id)

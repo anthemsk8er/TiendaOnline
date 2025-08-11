@@ -117,8 +117,8 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
 
         try {
             const { error } = isEditMode
-                ? await supabase.from('discount_codes').update(dataToUpsert).eq('id', discountCodeIdToEdit!)
-                : await supabase.from('discount_codes').insert([dataToUpsert]);
+                ? await supabase.from('discount_codes').update(dataToUpsert as any).eq('id', discountCodeIdToEdit!)
+                : await supabase.from('discount_codes').insert([dataToUpsert] as any);
             
             if (error) throw error;
 

@@ -26,7 +26,7 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
 
       try {
         // Fetch only approved reviews for the given product
-        const { data, error: fetchError }: PostgrestResponse<Review> = await supabase
+        const { data, error: fetchError }: PostgrestResponse<Review[]> = await supabase
           .from('reviews')
           .select('id, created_at, product_id, user_id, author_name, author_province, comment, image_url, rating, is_approved')
           .eq('product_id', productId)

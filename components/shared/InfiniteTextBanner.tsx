@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface InfiniteTextBannerProps {
@@ -8,12 +9,12 @@ interface InfiniteTextBannerProps {
 }
 
 const colorSchemes = {
-  purple: 'bg-[#6d28d9] text-white',
-  red: 'bg-red-600 text-white',
-  green: 'bg-green-600 text-white',
-  yellow: 'bg-yellow-400 text-gray-900',
-  blue: 'bg-blue-600 text-white',
-  dark: 'bg-gray-800 text-white',
+  purple: 'bg-[#2575fc] text-white',
+  red: 'bg-[#16a085] text-white',
+  green: 'bg-[#1a2b63] text-white',
+  yellow: 'bg-[#90b8f8] text-[#1a2b63]',
+  blue: 'bg-[#2952a3] text-white',
+  dark: 'bg-[#1a2b63] text-white',
 };
 
 const speeds = {

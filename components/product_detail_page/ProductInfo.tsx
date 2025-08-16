@@ -38,10 +38,10 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
   }, []);
 
   const guaranteeItems = [
-    { icon: <ShieldIcon className="h-8 w-8 text-amber-600" strokeWidth={1.5}/>, text: "Garantía de Satisfacción" },
-    { icon: <CreditCardIcon className="h-8 w-8 text-amber-600" strokeWidth={1.5}/>, text: "Compra Segura" },
-    { icon: <TruckIcon className="h-8 w-8 text-amber-600" strokeWidth={1.5}/>, text: "Pago Contra Entrega" },
-    { icon: <GlobeAltIcon className="h-8 w-8 text-amber-600" strokeWidth={1.5}/>, text: "Envíos a Nivel Nacional" }
+    { icon: <ShieldIcon className="h-8 w-8 text-sky-600" strokeWidth={1.5}/>, text: "Garantía de Satisfacción" },
+    { icon: <CreditCardIcon className="h-8 w-8 text-sky-600" strokeWidth={1.5}/>, text: "Compra Segura" },
+    { icon: <TruckIcon className="h-8 w-8 text-sky-600" strokeWidth={1.5}/>, text: "Pago Contra Entrega" },
+    { icon: <GlobeAltIcon className="h-8 w-8 text-sky-600" strokeWidth={1.5}/>, text: "Envíos a Nivel Nacional" }
   ];
 
   const timelineItems = [
@@ -52,22 +52,22 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm font-semibold uppercase text-gray-500 animate-fade-in-up">{product.vendor}</p>
+     {/* <p className="text-sm font-semibold uppercase text-gray-500 animate-fade-in-up">{product.vendor}</p> */}
       
       <div className="flex items-baseline gap-3 animate-fade-in-up delay-100">
         {product.originalPrice && product.originalPrice > product.price ? (
             <>
-              <p className="text-3xl font-bold text-green-600">S/ {product.price.toFixed(2)}</p>
+              <p className="text-3xl font-bold text-[#1a2b63]">S/ {product.price.toFixed(2)}</p>
               <p className="text-md text-gray-400 line-through">S/ {product.originalPrice.toFixed(2)}</p>
-              <span className="bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md">OFERTA</span>
+              <span className="bg-[#16a085] text-white text-xs font-bold px-2 py-1 rounded-md">OFERTA</span>
             </>
           ) : (
-            <p className="text-3xl font-bold text-gray-900">S/ {product.price.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-[#1a2b63]">S/ {product.price.toFixed(2)}</p>
           )
         }
       </div>
 
-      <h1 className="text-2xl md:text-3xl font-bold text-gray-800 animate-fade-in-up delay-200">{product.title}</h1>
+      <h1 className="text-2xl md:text-3xl font-bold text-[#1a2b63] animate-fade-in-up delay-200">{product.title}</h1>
       
       
       <div className="flex items-center gap-2 animate-fade-in-up delay-300">
@@ -78,12 +78,12 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
 
              <div className="mt-4 space-y-1 animate-fade-in-up delay-500">
         <p className="font-semibold text-gray-800 flex items-center text-sm">
-            <span className="w-2.5 h-2.5 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+            <span className="w-2.5 h-2.5 bg-[#16a085] rounded-full mr-2 animate-pulse"></span>
             {viewers} PERSONAS VIENDO ESTE PRODUCTO.
         </p>
         {product.stock > 0 && product.stock < 20 && (
             <p className="text-sm text-gray-700">
-                Solamente quedan <strong className="font-bold text-red-600">{product.stock}</strong> en stock.
+                Solamente quedan <strong className="font-bold text-[#16a085]">{product.stock}</strong> en stock.
             </p>
         )}
       </div>
@@ -100,7 +100,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
       <div className="mt-6 flex flex-col gap-4 animate-fade-in-up delay-500">
           <button 
             onClick={() => onOrderNow(quantity)}
-            className="w-full bg-green-500 text-white font-bold py-4 px-6 rounded-xl border-black-400 hover:bg-green-600 transition-colors flex items-center justify-center gap-3 text-lg shadow-lg shadow-green-500/30"
+            className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-xl border-black-400 hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-lg shadow-lg shadow-[#16a085]/30"
           >
               <div className="text-left">
                 <span className="block font-bold text-base leading-tight">REALIZA TU PEDIDO</span>
@@ -112,7 +112,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
 
 
 
-      <div className="mt-4 border border-amber-400 bg-amber-50/50 rounded-lg grid grid-cols-2 sm:grid-cols-4 divide-x divide-amber-300 text-center animate-fade-in-up delay-600">
+      <div className="mt-4 border border-sky-400 bg-sky-50/50 rounded-lg grid grid-cols-2 sm:grid-cols-4 divide-x divide-sky-300 text-center animate-fade-in-up delay-600">
         {guaranteeItems.map((item, index) => (
             <div key={index} className="p-3 flex flex-col items-center justify-start gap-2">
                 {item.icon}
@@ -126,7 +126,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow }) => {
           <div className="absolute top-5 left-1/2 -translate-x-1/2 w-2/3 h-0.5 bg-gray-200" style={{zIndex: -1}}></div>
           {timelineItems.map((item) => (
             <div key={item.time} className="flex-1 px-2">
-              <div className="w-10 h-10 mx-auto bg-gray-800 rounded-full flex items-center justify-center text-white border-4 border-white z-10 relative">
+              <div className="w-10 h-10 mx-auto bg-[#2952a3] rounded-full flex items-center justify-center text-white border-4 border-white z-10 relative">
                   {item.icon}
               </div>
               <p className="mt-2 font-bold text-sm text-gray-800">{item.time}</p>

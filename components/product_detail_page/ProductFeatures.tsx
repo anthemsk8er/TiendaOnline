@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { FeaturesData } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';
@@ -18,10 +19,10 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, children, alignm
     return (
         <div className={containerClasses}>
             <div className="flex-shrink-0 mt-1">
-                <DynamicIcon name={icon} className="w-8 h-8 text-indigo-500" />
+                <DynamicIcon name={icon} className="w-8 h-8 text-[#1a2b63]" />
             </div>
             <div className={textAlignment}>
-                <h3 className="font-bold text-lg text-gray-800">{title}</h3>
+                <h3 className="font-bold text-lg text-[#1a2b63]">{title}</h3>
                 <p className="mt-1 text-gray-600">{children}</p>
             </div>
         </div>
@@ -46,7 +47,7 @@ const ProductFeatures: React.FC<ProductFeaturesProps> = ({ featuresData }) => {
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-            <h2 className="text-3xl lg:text-4xl font-black text-gray-900 tracking-tight uppercase animate-fade-in-up">
+            <h2 className="text-3xl lg:text-4xl font-black text-[#1a2b63] tracking-tight uppercase animate-fade-in-up">
               {title}
             </h2>
             <p className="mt-4 max-w-3xl mx-auto text-center text-gray-600 animate-fade-in-up delay-100">

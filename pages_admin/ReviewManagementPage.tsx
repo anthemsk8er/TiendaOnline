@@ -1,11 +1,13 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Review, Profile } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { CheckIcon, TrashIcon } from '../components/product_detail_page/Icons';
+import type { Database } from '../lib/database.types';
 
 interface ReviewManagementPageProps {
   onCatalogClick: (category?: string) => void;
@@ -24,8 +26,10 @@ interface ReviewManagementPageProps {
   cartItemCount: number;
 }
 
+type ReviewWithProduct = Review & { products: { name: string } | null };
+
 const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<ReviewWithProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<{type: 'success' | 'error', text: string} | null>(null);
@@ -49,7 +53,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
           setError(fetchError.message);
       }
     } else {
-      setReviews(data as Review[]);
+      setReviews(data || []);
     }
     setLoading(false);
   };
@@ -61,8 +65,7 @@ const ReviewManagementPage: React.FC<ReviewManagementPageProps> = (props) => {
   const handleApprove = async (reviewId: string) => {
     setMessage(null);
     if (!supabase) return;
-    const payload = { is_approved: true };
-    const { error } = await supabase.from('reviews').update(payload as any).eq('id', reviewId);
+    const { error } = await supabase.from('reviews').update({ is_approved: true } as any).eq('id', reviewId);
     if (error) {
         setMessage({ type: 'error', text: `Error al aprobar: ${error.message}`});
     } else {

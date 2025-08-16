@@ -89,7 +89,7 @@ const DiscountTab = () => {
         <>
             <button
                 onClick={() => setIsOpen(true)}
-                className="discount-tab-button bg-amber-400 text-blue font-bold text-xs tracking-wider uppercase py-2 px-4 rounded-b-lg shadow-lg hover:bg-amber-600 transition-colors"
+                className="discount-tab-button bg-gray-100 text-blue font-bold text-xs tracking-wider uppercase py-2 px-4 rounded-b-lg shadow-lg hover:bg-gray-600 transition-colors"
             >
                 Obtén 10% de dcto!
             </button>
@@ -100,7 +100,7 @@ const DiscountTab = () => {
                         className={`bg-white rounded-xl shadow-2xl w-full max-w-md p-8 relative transform transition-all modal-content-enter-active`}
                         onClick={e => e.stopPropagation()}
                     >
-                         <button onClick={resetAndClose} className="absolute top-4 right-4 p-1 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Cerrar modal">
+                         <button onClick={resetAndClose} className="absolute top-4 right-4 p-1 rounded-full text-gray-100 hover:bg-gray-100" aria-label="Cerrar modal">
                             <XMarkIcon className="w-6 h-6" />
                         </button>
                         

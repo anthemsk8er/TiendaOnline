@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useEffect } from 'react';
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
@@ -100,7 +97,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         {/* Banner Section */}
         <section 
           className="h-40 bg-cover bg-center flex items-center justify-center text-white"
-          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bannerImage})`}}
+          style={{ backgroundImage: `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url(${bannerImage}?width=1920&quality=75)`}}
         >
           <h1 className="text-3xl md:text-5xl font-bold tracking-tight animate-fade-in-up">{title}</h1>
         </section>
@@ -111,7 +108,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
              {/*  <nav className="flex" aria-label="Breadcrumb">
                 <ol className="inline-flex items-center space-x-1 md:space-x-3">
                   <li className="inline-flex items-center">
-                    <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600">
+                    <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-[#16a085]">
                       Inicio
                     </a>
                   </li>
@@ -120,7 +117,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
                       <li>
                         <div className="flex items-center">
                           <ChevronRightIcon className="w-5 h-5 text-gray-400" strokeWidth={2}/>
-                          <a href="#" onClick={(e) => { e.preventDefault(); onCatalogClick(); }} className="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2">
+                          <a href="#" onClick={(e) => { e.preventDefault(); onCatalogClick(); }} className="ml-1 text-sm font-medium text-gray-700 hover:text-[#16a085] md:ml-2">
                             Catálogo
                           </a>
                         </div>
@@ -148,7 +145,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
               </nav>
              <button
                 onClick={handleRefresh}
-                className="bg-pink-600 text-white px-4 py-2 rounded-md hover:bg-pink-700 text-sm font-semibold transition-colors"
+                className="bg-[#16a085] text-white px-4 py-2 rounded-md hover:bg-[#117a65] text-sm font-semibold transition-colors"
               >
                 Actualizar Productos
               </button> */}

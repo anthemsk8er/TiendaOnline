@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { SupabaseProduct, Product } from '../../types';
 
@@ -42,7 +43,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
       <div className="relative">
         <div className="aspect-square bg-gray-100 overflow-hidden">
             <img
-            src={product.image_url || 'https://picsum.photos/id/21/400/400'}
+            src={`${product.image_url}?width=400&height=400&resize=cover&quality=80`}
             alt={product.name}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
             loading="lazy"
@@ -51,7 +52,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
             />
         </div>
         {product.discount_price && (
-          <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold">
+          <div className="absolute top-2 right-2 bg-[#16a085] text-white px-2 py-1 rounded-md text-xs font-bold">
             OFERTA
           </div>
         )}
@@ -59,11 +60,11 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
       
       <div className="p-3 flex flex-col flex-grow">
         {product.vendor && (
-            <p className="text-xs font-semibold uppercase text-pink-600 mb-1 tracking-wider">
+            <p className="text-xs font-semibold uppercase text-[#2575fc] mb-1 tracking-wider">
                 {product.vendor}
             </p>
         )}
-        <h3 className="font-medium text-sm text-gray-700 mb-1 line-clamp-2 h-10">
+        <h3 className="font-medium text-sm text-[#1a2b63] mb-1 line-clamp-2 h-10">
           {product.name}
         </h3>
         
@@ -85,7 +86,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
             <div className="flex items-baseline gap-2">
                 {product.discount_price ? (
                 <>
-                    <span className="font-bold text-base text-gray-900">
+                    <span className="font-bold text-base text-[#1a2b63]">
                     S/ {product.discount_price.toFixed(2)}
                     </span>
                     <span className="text-sm text-gray-500 line-through">
@@ -93,7 +94,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
                     </span>
                 </>
                 ) : (
-                <span className="font-bold text-base text-gray-900">
+                <span className="font-bold text-base text-[#1a2b63]">
                     S/ {product.price.toFixed(2)}
                 </span>
                 )}
@@ -113,7 +114,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
             <button 
                 onClick={handleAddToCartClick}
                 disabled={product.stock === 0}
-                className="w-full mt-3 bg-blue-700 text-white px-3 py-2 rounded-lg hover:bg-blue-800 transition-colors duration-200 text-sm font-bold disabled:bg-gray-300 disabled:cursor-not-allowed">
+                className="w-full mt-3 bg-[#16a085] text-white px-3 py-2 rounded-lg hover:bg-[#117a65] transition-colors duration-200 text-sm font-bold disabled:bg-gray-300 disabled:cursor-not-allowed">
                 Agregar al Carrito
             </button>
         </div>

@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import type { SupabaseProduct, Category, Profile } from '../types';
+import type { SupabaseProduct, Category, Profile, Tag } from '../types';
 import type { Session } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -40,15 +39,16 @@ const ProductManagementPage: React.FC<ProductManagementPageProps> = (props) => {
       setLoading(true);
       const { data, error } = await supabase
         .from('products')
-        .select('*, product_categories(categories(id, name))')
+        .select('*, product_categories(categories(id, name)), product_tags(tags(id, name, color))')
         .order('created_at', { ascending: false });
 
       if (error) {
         setError(error.message);
       } else {
-        const transformedData = data.map(p => ({
+        const transformedData = (data || []).map((p: any) => ({
             ...p,
-            categories: (p.product_categories || []).map(pc => pc.categories).filter(Boolean) as Category[]
+            categories: (p.product_categories || []).map((pc: any) => pc.categories).filter(Boolean),
+            tags: (p.product_tags || []).map((pt: any) => pt.tags).filter(Boolean)
         }))
         setProducts(transformedData as SupabaseProduct[]);
       }

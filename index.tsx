@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import HomePage from './pages/HomePage';
@@ -8,7 +9,7 @@ import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
-import ProductUploadPage from './pages_admin/ProductUploadPage';
+import { ProductUploadPage } from './pages_admin/ProductUploadPage';
 import UserManagementPage from './pages_admin/UserManagementPage';
 import OrdersPage from './pages_admin/OrdersPage';
 import DiscountCodeManagementPage from './pages_admin/DiscountCodeManagementPage';
@@ -17,7 +18,7 @@ import ReviewManagementPage from './pages_admin/ReviewManagementPage';
 import AuthModal from './components/auth/AuthModal';
 import { supabase } from './lib/supabaseClient';
 import type { Product, CartItem, Profile } from './types';
-import type { Session, PostgrestError } from '@supabase/supabase-js';
+import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
 import DiscountTab from './components/shared/DiscountTab';
 
 interface ViewState {
@@ -69,9 +70,9 @@ const App = () => {
         }
         
         const getSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setSession(session);
-            if (!session) setLoadingProfile(false);
+            const { data: sessionData } = await supabase.auth.getSession();
+            setSession(sessionData.session);
+            if (!sessionData.session) setLoadingProfile(false);
         };
         getSession();
 
@@ -95,7 +96,7 @@ const App = () => {
                 // Fetch profile from 'profiles' table
                 const { data: profileData, error } = await supabase
                     .from('profiles')
-                    .select('id, full_name, role')
+                    .select('full_name, role')
                     .eq('id', session.user.id)
                     .single();
 
@@ -105,8 +106,9 @@ const App = () => {
                     setProfile(null);
                 } else {
                     // Construct the profile, using user_metadata as a fallback for the name.
-                    const userMetadata = session.user.user_metadata as { [key: string]: any } | undefined;
-                    const fullName = profileData?.full_name || userMetadata?.full_name || session.user.email || 'Usuario';
+                    const userMetadata = session.user.user_metadata;
+                    const fullNameFromMeta = (userMetadata && typeof userMetadata.full_name === 'string') ? userMetadata.full_name : undefined;
+                    const fullName = profileData?.full_name || fullNameFromMeta || session.user.email || 'Usuario';
                     
                     const role: 'ADMIN' | 'CLIENT' = profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT';
 
@@ -299,7 +301,7 @@ const App = () => {
         if (!profile && loadingProfile && session) {
              return (
                 <div className="flex justify-center items-center h-screen">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-600"></div>
+                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
                 </div>
             );
         }

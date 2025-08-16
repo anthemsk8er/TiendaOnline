@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { BenefitsData } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';
@@ -22,10 +23,10 @@ const ProductBenefitsSection: React.FC<ProductBenefitsSectionProps> = ({ imagePo
                 {benefits.map((benefit, index) => (
                     <div key={index} className="flex items-start gap-5">
                         <div className="flex-shrink-0 mt-1">
-                            <DynamicIcon name={benefit.icon} className="w-9 h-9 text-purple-600" />
+                            <DynamicIcon name={benefit.icon} className="w-9 h-9 text-[#16a085]" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-bold text-gray-900">{benefit.title}</h3>
+                            <h3 className="text-xl font-bold text-[#1a2b63]">{benefit.title}</h3>
                             <p className="mt-1 text-gray-600">{benefit.description}</p>
                         </div>
                     </div>

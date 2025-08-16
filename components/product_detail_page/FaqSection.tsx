@@ -22,7 +22,7 @@ const FaqSection: React.FC<FaqSectionProps> = ({ faqData }) => {
 
   return (
     <section className="mt-16 lg:mt-24 px-4">
-      <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8 animate-fade-in-up">{title}</h2>
+      <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1a2b63] mb-8 animate-fade-in-up">{title}</h2>
       <div className="max-w-4xl mx-auto">
         {items.map((faq, index) => {
           const isOpen = openIndex === index;
@@ -35,7 +35,7 @@ const FaqSection: React.FC<FaqSectionProps> = ({ faqData }) => {
               >
                 <span className="flex items-center gap-3">
                   <CheckBadgeIcon className="w-6 h-6 text-gray-400 flex-shrink-0" strokeWidth={1} />
-                  <span className="font-semibold text-gray-800">{faq.question}</span>
+                  <span className="font-semibold text-[#1a2b63]">{faq.question}</span>
                 </span>
                 {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
               </button>

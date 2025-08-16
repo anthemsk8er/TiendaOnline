@@ -1,8 +1,11 @@
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { XMarkIcon, UserIcon, ChatIcon, MapPinIcon, AtSymbolIcon, ShoppingBagIcon, WalletIcon, ChevronDownIcon } from '../product_detail_page/Icons';
-import type { CartItem, DiscountCode, Order } from '../../types';
+import type { CartItem, DiscountCode, Order, Json } from '../../types';
 import { peruLocations } from '../../lib/peruLocations';
 import { supabase } from '../../lib/supabaseClient';
+import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import type { Database } from '../../lib/database.types';
 
 interface CheckoutPopupProps {
   isOpen: boolean;
@@ -207,7 +210,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
       setAppliedDiscountCode(null);
       setDiscountAmount(0);
 
-      const { data: codeData, error } = await supabase
+      const { data: codeData, error }: PostgrestSingleResponse<DiscountCode> = await supabase
         .from('discount_codes')
         .select('id, code, discount_type, discount_value, limitation_type, start_date, end_date, usage_limit, times_used, scope, product_id, is_active')
         .ilike('code', codeToVerify)
@@ -304,18 +307,18 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
 
     try {
         if (supabase) {
-            const orderData: Omit<Order, 'id' | 'created_at'> = {
+            const orderData: Database['public']['Tables']['orders']['Insert'] = {
                 full_name: formData.fullName,
                 email: formData.email,
                 phone: formData.phone,
                 address: formData.address,
-                reference: formData.reference,
+                reference: formData.reference || null,
                 department: formData.department,
                 province: formData.province,
                 district: formData.district,
                 shipping_method: shippingMethod,
                 payment_method: paymentMethod,
-                cart_items: items,
+                cart_items: items as unknown as Json,
                 upsell_included: isUpsellChecked,
                 total_amount: total,
                 discount_code: appliedDiscountCode ? appliedDiscountCode.code : null,
@@ -403,7 +406,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
         onClick={e => e.stopPropagation()}
       >
         <header className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
-          <h2 id="checkout-heading" className="text-xl font-bold text-gray-800">RESUMEN DEL PEDIDO</h2>
+          <h2 id="checkout-heading" className="text-xl font-bold text-[#1a2b63]">RESUMEN DEL PEDIDO</h2>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
             <XMarkIcon className="w-6 h-6 text-gray-600" />
           </button>
@@ -415,20 +418,20 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                      <div className="space-y-2">
                         {offers.map(offer => (
                         
-                        <label key={offer.id} className={`p-4 border rounded-lg flex items-center gap-2 cursor-pointer transition-all ${selectedOffer?.id === offer.id ? 'border-2 border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-gray-400'}`}>
+                        <label key={offer.id} className={`p-4 border rounded-lg flex items-center gap-2 cursor-pointer transition-all ${selectedOffer?.id === offer.id ? 'border-2 border-[#16a085] bg-[#16a085]/10' : 'border-gray-200 hover:border-gray-400'}`}>
                             
-                            <input type="radio" name="offer" value={offer.id} checked={selectedOffer?.id === offer.id} onChange={() => handleSelectOffer(offer)} className="w-5 h-5 accent-blue-600"/>
+                            <input type="radio" name="offer" value={offer.id} checked={selectedOffer?.id === offer.id} onChange={() => handleSelectOffer(offer)} className="w-5 h-5 accent-[#16a085]"/>
                             
                             <img src={offer.image} alt="Product" className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
                             
                             <div className="flex-grow">
-                              <p className="font-semibold text-gray-800 mb-1">{offer.title}</p>
-                              <span className="text-xs font-bold text-white bg-blue-500 px-2 py-0.5  rounded-full">{offer.discount}</span>
+                              <p className="font-semibold text-[#1a2b63] mb-1">{offer.title}</p>
+                              <span className="text-xs font-bold text-white bg-[#16a085] px-2 py-0.5  rounded-full">{offer.discount}</span>
                             </div>
 
                             <div className="text-right">
                               {offer.originalPrice && <p className="text-sm text-gray-400 line-through">S/ {offer.originalPrice.toFixed(2)}</p>}
-                              <p className="font-bold text-lg text-gray-900">S/ {offer.price.toFixed(2)}</p>
+                              <p className="font-bold text-lg text-[#1a2b63]">S/ {offer.price.toFixed(2)}</p>
                             </div>
                         </label>
 
@@ -440,10 +443,10 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                             <div key={item.id} className="p-4 border rounded-lg flex items-center gap-4 bg-gray-50">
                                 <img src={item.image} alt={item.title} className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
                                 <div className="flex-grow">
-                                    <p className="font-semibold text-gray-800">{item.title}</p>
+                                    <p className="font-semibold text-[#1a2b63]">{item.title}</p>
                                     <p className="text-sm text-gray-500">{item.quantity} x S/ {item.price.toFixed(2)}</p>
                                 </div>
-                                <p className="font-bold text-lg text-gray-900">S/ {(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-bold text-lg text-[#1a2b63]">S/ {(item.price * item.quantity).toFixed(2)}</p>
                             </div>
                         ))}
                     </div>
@@ -451,7 +454,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                
 
                 <fieldset>
-                    <legend className="font-bold text-gray-800 mb-2">Método de envío</legend>
+                    <legend className="font-bold text-[#1a2b63] mb-2">Método de envío</legend>
                     <div className="border border-gray-200 rounded-lg">
                     <label className="p-4 flex items-center gap-4 cursor-pointer border-b">
                         <input type="radio" name="shipping" value="domicilio" checked={shippingMethod === 'domicilio'} onChange={(e) => setShippingMethod(e.target.value)} className="w-5 h-5 accent-gray-800"/>
@@ -466,10 +469,10 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                     </div>
                 </fieldset>
 
-                <label className={`p-4 border-2 rounded-lg flex items-center gap-4 cursor-pointer transition-all ${isUpsellChecked ? 'border-blue-500 bg-blue-50' : 'border-dashed border-gray-300 hover:border-gray-400'}`}>
-                    <input type="checkbox" checked={isUpsellChecked} onChange={() => setIsUpsellChecked(!isUpsellChecked)} className="w-5 h-5 rounded accent-blue-600"/>
+                <label className={`p-4 border-2 rounded-lg flex items-center gap-4 cursor-pointer transition-all ${isUpsellChecked ? 'border-[#16a085] bg-[#16a085]/10' : 'border-dashed border-gray-300 hover:border-gray-400'}`}>
+                    <input type="checkbox" checked={isUpsellChecked} onChange={() => setIsUpsellChecked(!isUpsellChecked)} className="w-5 h-5 rounded accent-[#16a085]"/>
                     <div className="flex-grow">
-                        <p className="font-semibold text-gray-800" dangerouslySetInnerHTML={{ __html: upsellProduct.title.replace(upsellProduct.price.toFixed(2), `<strong class="text-blue-600">S/ ${upsellProduct.price.toFixed(2)}</strong>`) }}></p>
+                        <p className="font-semibold text-[#1a2b63]" dangerouslySetInnerHTML={{ __html: upsellProduct.title.replace(upsellProduct.price.toFixed(2), `<strong class="text-[#16a085]">S/ ${upsellProduct.price.toFixed(2)}</strong>`) }}></p>
                     </div>
                     <img src={upsellProduct.image} alt="Upsell Product" className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
                 </label>
@@ -512,7 +515,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                           value={formData.discountCode}
                           onChange={handleInputChange}
                           placeholder="Código de descuento" 
-                          className="flex-grow px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+                          className="flex-grow px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none" 
                           disabled={!!appliedDiscountCode}
                           />
                         <button onClick={handleApplyDiscount} disabled={isVerifyingCode || !!appliedDiscountCode} className="bg-gray-800 text-white font-bold px-6 py-2 rounded-md hover:bg-black transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
@@ -522,7 +525,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                     {discountError && <p className="text-red-500 text-xs mt-1">{discountError}</p>}
                 </div>
                 
-                <h2 className="text-xl font-bold text-center text-gray-900 pt-4">Ingrese su dirección de envío</h2>
+                <h2 className="text-xl font-bold text-center text-[#1a2b63] pt-4">Ingrese su dirección de envío</h2>
                 <form className="space-y-4" noValidate>
                   {formFields.map(field => (
                       <div key={field.name}>
@@ -536,7 +539,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                               onChange={handleInputChange}
                               placeholder={field.placeholder} required 
                               aria-invalid={!!errors[field.name]}
-                              className={`w-full pl-10 pr-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors ${errors[field.name] ? 'border-red-500' : 'border-gray-300'}`} />
+                              className={`w-full pl-10 pr-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none transition-colors ${errors[field.name] ? 'border-red-500' : 'border-gray-300'}`} />
                         </div>
                         {errors[field.name] && <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>}
                       </div>
@@ -552,7 +555,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                           onChange={handleInputChange}
                           required 
                           aria-invalid={!!errors.department}
-                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-colors pr-10 ${errors.department ? 'border-red-500' : 'border-gray-300'}`}>
+                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none appearance-none transition-colors pr-10 ${errors.department ? 'border-red-500' : 'border-gray-300'}`}>
                             <option value="" disabled>Seleccionar Departamento</option>
                             {departments.map(dep => <option key={dep} value={dep}>{dep}</option>)}
                         </select>
@@ -574,7 +577,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                           required
                           disabled={!formData.department || provinces.length === 0}
                           aria-invalid={!!errors.province}
-                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-colors pr-10 ${errors.province ? 'border-red-500' : 'border-gray-300'} disabled:bg-gray-200 disabled:cursor-not-allowed`}>
+                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none appearance-none transition-colors pr-10 ${errors.province ? 'border-red-500' : 'border-gray-300'} disabled:bg-gray-200 disabled:cursor-not-allowed`}>
                             <option value="" disabled>Seleccionar Provincia</option>
                             {provinces.map(prov => <option key={prov} value={prov}>{prov}</option>)}
                         </select>
@@ -596,7 +599,7 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                           required
                           disabled={!formData.province || districts.length === 0}
                           aria-invalid={!!errors.district}
-                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none appearance-none transition-colors pr-10 ${errors.district ? 'border-red-500' : 'border-gray-300'} disabled:bg-gray-200 disabled:cursor-not-allowed`}>
+                          className={`w-full px-3 py-3 bg-slate-100 text-gray-900 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none appearance-none transition-colors pr-10 ${errors.district ? 'border-red-500' : 'border-gray-300'} disabled:bg-gray-200 disabled:cursor-not-allowed`}>
                             <option value="" disabled>Seleccionar Distrito</option>
                             {districts.map(dist => <option key={dist} value={dist}>{dist}</option>)}
                         </select>
@@ -615,14 +618,14 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
             <button 
                 onClick={(e) => handleFinalizePurchase(e, 'Pago en Casa')}
                 disabled={!isFormValid}
-                className="w-full bg-red-600 text-white font-bold py-4 px-6 rounded-lg hover:bg-red-700 transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-red-400 disabled:cursor-not-allowed">
+                className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-[#16a085]/70 disabled:cursor-not-allowed">
                 <ShoppingBagIcon className="w-6 h-6"/>
                 FINALIZAR COMPRA Y PAGAR EN CASA - S/ {total.toFixed(2)}
             </button>
               <button 
                 onClick={(e) => handleFinalizePurchase(e, 'Tarjeta, Yape o Plin')}
                 disabled={!isFormValid}
-                className="w-full bg-green-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-green-600 transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-green-300 disabled:cursor-not-allowed">
+                className="w-full bg-[#2952a3] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#1f3e7a] transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-[#2952a3]/70 disabled:cursor-not-allowed">
                 <WalletIcon className="w-6 h-6"/>
                 Pagar con Tarjeta, Yape o Plin - S/ {total.toFixed(2)}
             </button>

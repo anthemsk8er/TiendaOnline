@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 
 interface ProductGalleryProps {
@@ -58,7 +59,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
           </div>
         ) : (
           <img
-            src={mainDisplay.src}
+            src={`${mainDisplay.src}?width=800&height=800&resize=cover&quality=85`}
             alt="Product"
             className="w-full h-full object-cover"
             width="800"
@@ -71,12 +72,12 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
             <button
                 onClick={handleVideoThumbnailClick}
                 className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${
-                    mainDisplay.type === 'video' ? 'border-pink-500' : 'border-transparent hover:border-gray-300'
+                    mainDisplay.type === 'video' ? 'border-[#2575fc]' : 'border-transparent hover:border-gray-300'
                 }`}
                 aria-label="Reproducir video"
             >
                 <img
-                    src={images[0]?.replace('/800/800', '/100/100')} // Use first image for thumbnail bg and optional chaining for safety
+                    src={images[0] ? `${images[0]}?width=100&height=100&resize=cover&quality=75` : ''}
                     alt="Video thumbnail"
                     className="w-full h-full object-cover brightness-75"
                     width="100"
@@ -84,7 +85,7 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
                 />
                 <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group">
                     <div className="bg-white bg-opacity-90 rounded-full p-2 group-hover:bg-opacity-100 transition-all scale-90 group-hover:scale-100">
-                        <svg className="w-8 h-8 text-pink-600" fill="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-8 h-8 text-[#2575fc]" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M8 5v14l11-7z" />
                         </svg>
                     </div>
@@ -96,11 +97,11 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
             key={index}
             onClick={() => handleImageThumbnailClick(image)}
             className={`aspect-square rounded-md overflow-hidden border-2 transition-all ${
-              mainDisplay.type === 'image' && mainDisplay.src === image ? 'border-pink-500' : 'border-transparent hover:border-gray-300'
+              mainDisplay.type === 'image' && mainDisplay.src === image ? 'border-[#2575fc]' : 'border-transparent hover:border-gray-300'
             }`}
           >
             <img
-              src={image.replace('/800/800', '/100/100')} // Use smaller images for thumbnails
+              src={`${image}?width=100&height=100&resize=cover&quality=75`}
               alt={`Thumbnail ${index + 1}`}
               className="w-full h-full object-cover"
               width="100"

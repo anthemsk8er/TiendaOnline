@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ShoppingBagIcon, TrashIcon, AmexIcon, DinersClubIcon, MastercardIcon, VisaIcon, MinusIcon, PlusIcon } from '../product_detail_page/Icons';
 import type { CartItem } from '../../types';
@@ -73,7 +74,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
       >
         {/* Header */}
         <header className="p-4 flex justify-between items-center bg-white">
-          <h2 id="cart-heading" className="text-xl font-bold text-gray-900">Carrito • {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}</h2>
+          <h2 id="cart-heading" className="text-xl font-bold text-[#1a2b63]">Carrito • {totalItems} {totalItems === 1 ? 'ítem' : 'ítems'}</h2>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100" aria-label="Cerrar carrito">
             <XMarkIcon className="w-6 h-6 text-gray-700" />
           </button>
@@ -95,7 +96,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
                       <img src={item.image} alt={item.title} className="w-24 h-24 object-cover rounded-md border flex-shrink-0" width="96" height="96" />
                       <div className="flex-grow flex flex-col">
                           <div className="flex justify-between items-start gap-2">
-                              <h3 className="font-semibold text-gray-800 leading-tight text-sm">{item.title}</h3>
+                              <h3 className="font-semibold text-[#1a2b63] leading-tight text-sm">{item.title}</h3>
                               <button onClick={() => onRemoveItem(item.id)} className="text-gray-400 hover:text-red-500 flex-shrink-0" aria-label="Eliminar ítem">
                                   <TrashIcon className="w-5 h-5" />
                               </button>
@@ -104,7 +105,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
                               <QuantitySelector quantity={item.quantity} setQuantity={(q) => onUpdateQuantity(item.id, q)} />
                               <div className="text-right">
                                  {item.originalPrice && <p className="text-gray-400 line-through text-sm">S/ {(item.originalPrice * item.quantity).toFixed(2)}</p>}
-                                 <p className="font-bold text-gray-900 text-lg">S/ {(item.price * item.quantity).toFixed(2)}</p>
+                                 <p className="font-bold text-[#1a2b63] text-lg">S/ {(item.price * item.quantity).toFixed(2)}</p>
                               </div>
                           </div>
                           {itemSavings > 0 && <p className="text-sm text-green-600 mt-1 text-right font-medium">(Te ahorras S/. {itemSavings.toFixed(2)})</p>}
@@ -131,7 +132,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
                         <span>-S/. {savings.toFixed(2)}</span>
                     </div>
                   }
-                  <div className="flex justify-between font-bold text-xl text-gray-900">
+                  <div className="flex justify-between font-bold text-xl text-[#1a2b63]">
                       <span>Subtotal</span>
                       <span>S/. {subtotal.toFixed(2)}</span>
                   </div>
@@ -139,7 +140,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
 
               <button 
                   onClick={onCheckout}
-                  className="w-full bg-red-500 text-white font-bold py-4 px-6 rounded-lg hover:bg-red-400 transition-colors flex items-center justify-center gap-3 text-base shadow-lg shadow-[#E6007E]/30 animate-tada-periodic"
+                  className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-base shadow-lg shadow-green-500/30 animate-tada-periodic"
               >
                   <ShoppingBagIcon className="w-5 h-5"/>
                   REALIZAR MI PEDIDO

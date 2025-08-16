@@ -1,8 +1,7 @@
 
-
 import React, { useState, useEffect } from 'react';
 import type { Product, Review, CartItem, SupabaseProduct, Tag, Category, AccordionItem, HeroData, FeaturesData, BenefitsData, ComparisonData, FaqData, Profile, VideoWithFeaturesData } from '../types';
-import type { Session, PostgrestError } from '@supabase/supabase-js';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -44,6 +43,11 @@ interface ProductDetailPageProps {
   showAuthModal: (view: 'login' | 'register') => void;
 }
 
+type ProductData = Omit<SupabaseProduct, 'categories' | 'tags'> & {
+    product_categories: { categories: Category | null }[];
+    product_tags: { tags: Tag | null }[];
+};
+
 const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ 
   productId, 
   onProductClick, 
@@ -83,7 +87,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
       setLoading(true);
       setError(null);
       try {
-        const { data, error: fetchError }: { data: any | null, error: PostgrestError | null } = await supabase
+        const { data, error: fetchError } = await supabase
           .from('products')
           .select(`
             *,
@@ -91,18 +95,19 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
             product_tags(tags(id, name, color))
           `)
           .eq('id', productId!)
-          .single();
+          .single<ProductData>();
 
         if (fetchError) throw fetchError;
         
         if (data) {
+          const productData = data as any;
           const transformedProduct = {
-            ...data,
-            tags: (data.product_tags || [])
-                .map((pt) => pt.tags)
+            ...productData,
+            tags: (productData.product_tags || [])
+                .map((pt: any) => pt.tags)
                 .filter((t): t is Tag => t !== null),
-            categories: (data.product_categories || [])
-                .map((pc) => pc.categories)
+            categories: (productData.product_categories || [])
+                .map((pc: any) => pc.categories)
                 .filter((c): c is Category => c !== null),
           };
           setProduct(transformedProduct as SupabaseProduct);
@@ -216,7 +221,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pink-600"></div>
+        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
       </div>
     );
   }
@@ -230,7 +235,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <p className="text-red-500 mt-2 max-w-md">{error}</p>
           <button 
               onClick={onHomeClick}
-              className="mt-6 bg-pink-600 text-white px-6 py-2 rounded-full hover:bg-pink-700 font-semibold"
+              className="mt-6 bg-[#16a085] text-white px-6 py-2 rounded-full hover:bg-[#117a65] font-semibold"
           >
               Volver al inicio
           </button>
@@ -249,7 +254,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
           <p className="text-gray-500 mt-2">El producto que buscas no existe o no está disponible.</p>
           <button 
               onClick={onHomeClick}
-              className="mt-6 bg-pink-600 text-white px-6 py-2 rounded-full hover:bg-pink-700 font-semibold"
+              className="mt-6 bg-[#16a085] text-white px-6 py-2 rounded-full hover:bg-[#117a65] font-semibold"
           >
               Volver al inicio
           </button>
@@ -333,7 +338,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <ProductReviewsSection productId={product.id} />
    
         <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 lg:mt-24">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-8 animate-fade-in-up">Completa tu Rutina</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1a2b63] mb-8 animate-fade-in-up">Completa tu Rutina</h2>
              <ProductsGrid 
                 limit={4}
                 onProductClick={onProductClick}
@@ -352,7 +357,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
        <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t border-black-500 sm:hidden z-30">
         <button 
           onClick={() => handleOrderNow(1)}
-          className="w-full bg-red-500 text-white font-bold py-4 px-6 rounded-full hover:bg-red-600 transition-colors flex items-center justify-center gap-3 text-base shadow-lg shadow-red-500/30 animate-tada-periodic"
+          className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-full hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-base shadow-lg shadow-green-500/30 animate-tada-periodic"
         >
           <ShoppingBagIcon className="w-5 h-5"/>
           REALIZAR MI PEDIDO

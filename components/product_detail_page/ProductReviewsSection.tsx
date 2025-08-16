@@ -1,9 +1,11 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Review } from '../../types';
 import { supabase } from '../../lib/supabaseClient';
 import ReviewCard from './ReviewCard';
-import type { PostgrestError } from '@supabase/supabase-js';
+import type { PostgrestResponse } from '@supabase/supabase-js';
+
 
 interface ProductReviewsSectionProps {
   productId: string;
@@ -28,7 +30,7 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
         // Fetch only approved reviews for the given product
         const { data, error: fetchError } = await supabase
           .from('reviews')
-          .select('*')
+          .select('id, created_at, product_id, user_id, author_name, author_province, comment, image_url, rating, is_approved')
           .eq('product_id', productId)
           .eq('is_approved', true)
           .order('created_at', { ascending: false });
@@ -42,7 +44,7 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
               throw fetchError;
           }
         } else {
-          setReviews((data as Review[]) || []);
+          setReviews(data || []);
           setIsFeatureReady(true);
         }
 

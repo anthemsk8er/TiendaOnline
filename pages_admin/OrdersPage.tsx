@@ -1,13 +1,9 @@
 
 
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { Order, Profile } from '../types';
-import type { Session } from '@supabase/supabase-js';
+import type { Session, PostgrestResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 
@@ -48,7 +44,7 @@ const OrdersPage: React.FC<OrdersPageProps> = (props) => {
       if (error) {
         setError(error.message);
       } else {
-        setOrders(data as Order[]);
+        setOrders(data || []);
       }
       setLoading(false);
     };

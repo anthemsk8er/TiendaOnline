@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Product, Review, CartItem, SupabaseProduct, Tag, Category, AccordionItem, HeroData, FeaturesData, BenefitsData, ComparisonData, FaqData, Profile, VideoWithFeaturesData } from '../types';
 import type { Session, PostgrestResponse } from '@supabase/supabase-js';
@@ -24,7 +25,7 @@ import ProductReviewsSection from '../components/product_detail_page/ProductRevi
 
 interface ProductDetailPageProps {
   productId: string | null;
-  onProductClick: (productId: string) => void;
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;

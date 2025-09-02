@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, CheckBadgeIcon } from './Icons';
 import type { FaqData } from '../../types';

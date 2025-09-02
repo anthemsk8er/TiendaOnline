@@ -10,7 +10,8 @@ import Cart from '../components/cart_delivery/Cart';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
 
 interface ContactFaqPageProps {
-  onProductClick: (productId: string) => void;
+  // FIX: Updated onProductClick to accept productName to match the signature of the passed function.
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;

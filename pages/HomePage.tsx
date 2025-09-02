@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { CartItem, Product, Profile } from '../types';
@@ -32,7 +33,7 @@ const heroData = {
 
 
 interface HomePageProps {
-  onProductClick: (productId: string) => void;
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -59,15 +60,15 @@ const HomePage: React.FC<HomePageProps> = ({
 }) => {
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [citratoProductId, setCitratoProductId] = useState<string | null>(null);
+    const [citratoProduct, setCitratoProduct] = useState<{id: string, name: string} | null>(null);
     
     useEffect(() => {
         const fetchCitratoId = async () => {
             if (!supabase) return;
             // Fetch the product ID for Citrato de Magnesio to link the hero button correctly.
-            const { data, error }: PostgrestSingleResponse<{ id: string }> = await supabase
+            const { data, error }: PostgrestSingleResponse<{ id: string, name: string }> = await supabase
                 .from('products')
-                .select('id')
+                .select('id, name')
                 .ilike('name', '%citrato de magnesio%')
                 .limit(1)
                 .single();
@@ -75,7 +76,7 @@ const HomePage: React.FC<HomePageProps> = ({
             if (error && error.code !== 'PGRST116') {
                 console.warn("Hero button product 'Citrato de Magnesio' not found, falling back to category link:", error.message);
             } else if (data) {
-                setCitratoProductId(data.id);
+                setCitratoProduct(data);
             }
         };
 
@@ -139,8 +140,8 @@ const HomePage: React.FC<HomePageProps> = ({
                
                         <button
                             onClick={() => {
-                                if (citratoProductId) {
-                                    onProductClick(citratoProductId);
+                                if (citratoProduct) {
+                                    onProductClick(citratoProduct.id, citratoProduct.name);
                                 } else {
                                     // Fallback to the 'Energía' category if product not found
                                     onCatalogClick('Energía');
@@ -208,6 +209,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 <ShippingGuaranteeSection />
             </main>
             <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
+            {/* FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity */}
             <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity}/>
             <Cart 
                 isOpen={isCartOpen} 
@@ -215,6 +217,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onCheckout={handleProceedToCheckout} 
                 items={cartItems}
                 onRemoveItem={onRemoveFromCart}
+                // FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity
                 onUpdateQuantity={onUpdateCartQuantity}
              />
             <WhatsAppButton phoneNumber="965210993" message={whatsappMessage} />

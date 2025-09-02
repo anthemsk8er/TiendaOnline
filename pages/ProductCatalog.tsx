@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
@@ -13,7 +14,7 @@ import WhatsAppButton from '../components/shared/WhatsAppButton';
 const bannerImage = 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/product-catalog/productCatalogHeroImage.jpg';
 
 interface ProductCatalogProps {
-  onProductClick: (productId: string) => void;
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -164,6 +165,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
 
       </main>
       <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
+      {/* FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity */}
       <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity} />
       <Cart 
         isOpen={isCartOpen} 

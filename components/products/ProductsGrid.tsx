@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import ProductCard from './ProductCard';
@@ -27,7 +28,7 @@ interface ProductsGridProps {
   limit?: number | null;
   title?: string | null;
   showLoadMore?: boolean;
-  onProductClick: (id: string) => void;
+  onProductClick: (id: string, name: string) => void;
   onAddToCart: (product: Product, quantity: number) => void;
   onCartOpen?: () => void;
   refetchTrigger?: number;
@@ -100,10 +101,11 @@ const ProductsGrid: React.FC<ProductsGridProps> = ({
             
             if (fetchError) throw fetchError;
 
-            const transformedData = (data || []).map((p) => ({
+            // FIX: Explicitly type `p` as `any` because the dynamic select string breaks TS type inference.
+            const transformedData = (data || []).map((p: any) => ({
                 ...p,
-                tags: (p.product_tags || []).map((pt) => pt.tags).filter((t): t is Tag => t !== null),
-                categories: (p.product_categories || []).map((pc) => pc.categories).filter((c): c is Category => c !== null)
+                tags: (p.product_tags || []).map((pt: any) => pt.tags).filter((t): t is Tag => t !== null),
+                categories: (p.product_categories || []).map((pc: any) => pc.categories).filter((c): c is Category => c !== null)
             }));
 
             setProducts(isLoadMore ? prev => [...prev, ...transformedData] : transformedData);

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { SupabaseProduct, Category, Profile, Tag } from '../types';
@@ -8,7 +9,7 @@ import Footer from '../components/layout/Footer';
 
 interface ProductManagementPageProps {
   onEditProduct: (id: string) => void;
-  onViewProduct: (id: string) => void;
+  onViewProduct: (id: string, name: string) => void;
   onAddNewProduct: () => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
@@ -119,7 +120,7 @@ const ProductManagementPage: React.FC<ProductManagementPageProps> = (props) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                         <button
-                          onClick={() => props.onViewProduct(product.id)}
+                          onClick={() => props.onViewProduct(product.id, product.name)}
                           className="text-green-600 hover:text-green-900"
                         >
                           Ver

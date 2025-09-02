@@ -1,10 +1,11 @@
 
+
 import React from 'react';
 import type { SupabaseProduct, Product } from '../../types';
 
 interface ProductCardProps {
   product: SupabaseProduct;
-  onProductClick: (id: string) => void;
+  onProductClick: (id: string, name: string) => void;
   onAddToCart: (product: Product, quantity: number) => void;
   onCartOpen?: () => void;
 }
@@ -37,7 +38,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
   return (
     <div 
       className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer group flex flex-col"
-      onClick={() => onProductClick(product.id)}
+      onClick={() => onProductClick(product.id, product.name)}
       aria-label={`View details for ${product.name}`}
     >
       <div className="relative">

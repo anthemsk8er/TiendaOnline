@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../lib/supabaseClient';
 import type { SupabaseProduct, Profile, Category, Tag, ProductHighlightsData, PromotionsData, PromotionCard } from '../../types';
 import type { Session } from '@supabase/supabase-js';
-import Header from '../../components/layout/Header';
-import Footer from '../../components/layout/Footer';
-import RichTextSection from '../../components/product_detail_page/RichTextSection';
+import Header from '../components/layout/Header';
+import Footer from '../components/layout/Footer';
+import RichTextSection from '../components/product_detail_page/RichTextSection';
 
 interface ProductUploadPageProps {
   onCatalogClick: (category?: string) => void;

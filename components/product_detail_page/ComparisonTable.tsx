@@ -1,6 +1,8 @@
 
+
 import React from 'react';
 import { CheckCircleIcon, XMarkIcon } from './Icons';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { ComparisonData } from '../../types';
 
 interface ComparisonTableProps {

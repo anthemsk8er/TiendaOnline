@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem, Product, Profile } from '../types';
 import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
@@ -32,7 +32,7 @@ const heroData = {
 
 
 interface HomePageProps {
-  onProductClick: (productId: string) => void;
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -40,6 +40,9 @@ interface HomePageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminOrdersClick?: () => void;
+  onAdminDiscountManagementClick?: () => void;
+  onAdminReviewManagementClick?: () => void;
   cartItems: CartItem[];
   onAddToCart: (product: Product, quantity: number) => void;
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;
@@ -49,25 +52,26 @@ interface HomePageProps {
   profile: Profile | null;
   onLogout: () => void;
   showAuthModal: (view: 'login' | 'register') => void;
+  onEditProduct: (id: string) => void;
 }
 
 const HomePage: React.FC<HomePageProps> = ({ 
     onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
-    onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick,
+    onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick, onAdminOrdersClick, onAdminDiscountManagementClick, onAdminReviewManagementClick,
     cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
-    session, profile, onLogout, showAuthModal
+    session, profile, onLogout, showAuthModal, onEditProduct
 }) => {
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [citratoProductId, setCitratoProductId] = useState<string | null>(null);
+    const [citratoProduct, setCitratoProduct] = useState<{id: string, name: string} | null>(null);
     
     useEffect(() => {
         const fetchCitratoId = async () => {
             if (!supabase) return;
             // Fetch the product ID for Citrato de Magnesio to link the hero button correctly.
-            const { data, error }: PostgrestSingleResponse<{ id: string }> = await supabase
+            const { data, error }: PostgrestSingleResponse<{ id: string; name: string }> = await supabase
                 .from('products')
-                .select('id')
+                .select('id, name')
                 .ilike('name', '%citrato de magnesio%')
                 .limit(1)
                 .single();
@@ -75,7 +79,7 @@ const HomePage: React.FC<HomePageProps> = ({
             if (error && error.code !== 'PGRST116') {
                 console.warn("Hero button product 'Citrato de Magnesio' not found, falling back to category link:", error.message);
             } else if (data) {
-                setCitratoProductId(data.id);
+                setCitratoProduct(data);
             }
         };
 
@@ -114,6 +118,9 @@ const HomePage: React.FC<HomePageProps> = ({
                 onAdminProductUploadClick={onAdminProductUploadClick} 
                 onAdminProductManagementClick={onAdminProductManagementClick} 
                 onAdminUserManagementClick={onAdminUserManagementClick}
+                onAdminOrdersClick={onAdminOrdersClick}
+                onAdminDiscountManagementClick={onAdminDiscountManagementClick}
+                onAdminReviewManagementClick={onAdminReviewManagementClick}
                 cartItemCount={cartItemCount}
                 session={session}
                 profile={profile}
@@ -139,8 +146,8 @@ const HomePage: React.FC<HomePageProps> = ({
                
                         <button
                             onClick={() => {
-                                if (citratoProductId) {
-                                    onProductClick(citratoProductId);
+                                if (citratoProduct) {
+                                    onProductClick(citratoProduct.id, citratoProduct.name);
                                 } else {
                                     // Fallback to the 'Energía' category if product not found
                                     onCatalogClick('Energía');
@@ -168,6 +175,8 @@ const HomePage: React.FC<HomePageProps> = ({
                         onProductClick={onProductClick}
                         onAddToCart={onAddToCart}
                         onCartOpen={handleOpenCart}
+                        profile={profile}
+                        onEditProduct={onEditProduct}
                     />
                 </section>
 <InfiniteTextBanner
@@ -208,14 +217,16 @@ const HomePage: React.FC<HomePageProps> = ({
                 <ShippingGuaranteeSection />
             </main>
             <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
-            <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity}/>
+            {/* FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity */}
+            <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity}/>
             <Cart 
                 isOpen={isCartOpen} 
                 onClose={() => setIsCartOpen(false)} 
                 onCheckout={handleProceedToCheckout} 
                 items={cartItems}
                 onRemoveItem={onRemoveFromCart}
-                onUpdateQuantity={onUpdateCartQuantity}
+                // FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity
+                onUpdateCartQuantity={onUpdateCartQuantity}
              />
             <WhatsAppButton phoneNumber="965210993" message={whatsappMessage} />
         </div>

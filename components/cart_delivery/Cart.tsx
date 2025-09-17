@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { XMarkIcon, ShoppingBagIcon, TrashIcon, AmexIcon, DinersClubIcon, MastercardIcon, VisaIcon, MinusIcon, PlusIcon } from '../product_detail_page/Icons';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem } from '../../types';
 
 interface CartProps {
@@ -9,7 +9,8 @@ interface CartProps {
   onCheckout: () => void;
   items: CartItem[];
   onRemoveItem: (id: string) => void;
-  onUpdateQuantity: (id: string, quantity: number, newUnitPrice?: number) => void;
+  // FIX: Renamed prop for consistency
+  onUpdateCartQuantity: (id: string, quantity: number, newUnitPrice?: number) => void;
 }
 
 const QuantitySelector = ({ quantity, setQuantity }: { quantity: number; setQuantity: (q: number) => void; }) => {
@@ -35,7 +36,7 @@ const QuantitySelector = ({ quantity, setQuantity }: { quantity: number; setQuan
   );
 };
 
-const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemoveItem, onUpdateQuantity }) => {
+const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemoveItem, onUpdateCartQuantity }) => {
   const [timeLeft, setTimeLeft] = useState(4 * 60 + 18); // 04:18
   
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
@@ -102,7 +103,7 @@ const Cart: React.FC<CartProps> = ({ isOpen, onClose, onCheckout, items, onRemov
                               </button>
                           </div>
                           <div className="flex justify-between items-end mt-auto pt-2">
-                              <QuantitySelector quantity={item.quantity} setQuantity={(q) => onUpdateQuantity(item.id, q)} />
+                              <QuantitySelector quantity={item.quantity} setQuantity={(q) => onUpdateCartQuantity(item.id, q)} />
                               <div className="text-right">
                                  {item.originalPrice && <p className="text-gray-400 line-through text-sm">S/ {(item.originalPrice * item.quantity).toFixed(2)}</p>}
                                  <p className="font-bold text-[#1a2b63] text-lg">S/ {(item.price * item.quantity).toFixed(2)}</p>

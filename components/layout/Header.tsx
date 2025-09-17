@@ -1,6 +1,8 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { Profile } from '../../types';
 import InfiniteTextBanner from '../shared/InfiniteTextBanner';
 import { MenuIcon, SearchIcon, ShoppingBagIcon, XMarkIcon, UserIcon, ChevronDownIcon } from '../product_detail_page/Icons';
@@ -93,7 +95,7 @@ const Header: React.FC<HeaderProps> = ({
                 />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-12 items-center justify-between">
           <div className="flex flex-1 justify-start">
             <button onClick={() => setIsMenuOpen(true)} aria-label="Open menu" className="rounded-md p-2 text-gray-200 transition hover:bg-[#1f3e7a] hover:text-white lg:hidden">
               <MenuIcon className="h-6 w-6" />

@@ -1,5 +1,7 @@
 
+
 import React, { useState } from 'react';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
@@ -10,7 +12,8 @@ import Cart from '../components/cart_delivery/Cart';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
 
 interface ContactFaqPageProps {
-  onProductClick: (productId: string) => void;
+  // FIX: Updated onProductClick to accept productName to match the signature of the passed function.
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -192,7 +195,7 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
         items={cartItems}
-        onUpdateQuantity={onUpdateCartQuantity}
+        onUpdateCartQuantity={onUpdateCartQuantity}
       />
       <Cart
         isOpen={isCartOpen}
@@ -200,7 +203,7 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
         onCheckout={handleProceedToCheckout}
         items={cartItems}
         onRemoveItem={onRemoveFromCart}
-        onUpdateQuantity={onUpdateCartQuantity}
+        onUpdateCartQuantity={onUpdateCartQuantity}
       />
       <WhatsAppButton phoneNumber="955249392" message="Hola, tengo una pregunta sobre un producto de KetoShop." />
     </div>

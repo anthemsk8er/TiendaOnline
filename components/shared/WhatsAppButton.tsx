@@ -6,7 +6,7 @@ interface WhatsAppButtonProps {
   className?: string;
 }
 
-const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, className = 'bottom-5 right-5' }) => {
+const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, className = 'bottom-3 right-5' }) => {
   const [showMessage, setShowMessage] = useState(false);
   const whatsappUrl = `https://wa.me/51${phoneNumber}?text=${encodeURIComponent(message)}`;
 
@@ -41,7 +41,7 @@ const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, c
         aria-hidden={!showMessage}
       >
         <span className="w-2 h-2 bg-green-500 rounded-full mr-1.5 animate-pulse"></span>
-        Online
+        En línea
       </div>
 
       {/* WhatsApp Button */}
@@ -49,13 +49,13 @@ const WhatsAppButton: React.FC<WhatsAppButtonProps> = ({ phoneNumber, message, c
         href={whatsappUrl}
         target="_blank"
         rel="noopener noreferrer"
-        className="rounded-full shadow-lg hover:opacity-90 transition-all duration-300 transform group-hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+        className="rounded-full transition-all duration-300 transform group-hover:scale-110 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
         aria-label="Contactar por WhatsApp"
       >
         <img
             src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/whatsapp-icon-chat/boton-whatsapp.svg"
             alt="Contactar por WhatsApp"
-            className="w-60 h-16"
+            className="w-50 h-14"
         />
       </a>
     </div>

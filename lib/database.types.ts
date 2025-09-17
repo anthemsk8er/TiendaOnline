@@ -1,4 +1,3 @@
-
 export type Json =
   | string
   | number
@@ -115,57 +114,57 @@ export type Database = {
       };
       orders: {
         Row: {
-          address: string;
+          address: string | null;
           cart_items: Json;
           created_at: string;
-          department: string;
+          department: string | null;
           discount_amount: number | null;
           discount_code: string | null;
-          district: string;
-          email: string;
+          district: string | null;
+          email: string | null;
           full_name: string;
           id: string;
           payment_method: string;
           phone: string;
-          province: string;
+          province: string | null;
           reference: string | null;
           shipping_method: string | null;
           total_amount: number;
           upsell_included: boolean;
         };
         Insert: {
-          address: string;
+          address?: string | null;
           cart_items: Json;
           created_at?: string;
-          department: string;
+          department?: string | null;
           discount_amount?: number | null;
           discount_code?: string | null;
-          district: string;
-          email: string;
+          district?: string | null;
+          email?: string | null;
           full_name: string;
           id?: string;
           payment_method: string;
           phone: string;
-          province: string;
+          province?: string | null;
           reference?: string | null;
           shipping_method?: string | null;
           total_amount: number;
           upsell_included: boolean;
         };
         Update: {
-          address?: string;
+          address?: string | null;
           cart_items?: Json;
           created_at?: string;
-          department?: string;
+          department?: string | null;
           discount_amount?: number | null;
           discount_code?: string | null;
-          district?: string;
-          email?: string;
+          district?: string | null;
+          email?: string | null;
           full_name?: string;
           id?: string;
           payment_method?: string;
           phone?: string;
-          province?: string;
+          province?: string | null;
           reference?: string | null;
           shipping_method?: string | null;
           total_amount?: number;
@@ -243,22 +242,40 @@ export type Database = {
           accordion_point3_title: string | null;
           accordion_point4_content: string | null;
           accordion_point4_title: string | null;
+          benefit1_description: string | null;
+          benefit1_title: string | null;
+          benefit2_description: string | null;
+          benefit2_title: string | null;
+          benefit3_description: string | null;
+          benefit3_title: string | null;
+          benefit4_description: string | null;
+          benefit4_title: string | null;
           benefits_data: Json | null;
           comparison_data: Json | null;
           created_at: string;
           description: string;
+          desktop_content: string | null;
           discount_price: number | null;
           faq_data: Json | null;
           features_data: Json | null;
           hero_data: Json | null;
+          highlights_data: Json | null;
           id: string;
           image_url: string;
+          image_url_10: string | null;
           image_url_2: string | null;
           image_url_3: string | null;
           image_url_4: string | null;
+          image_url_5: string | null;
+          image_url_6: string | null;
+          image_url_7: string | null;
+          image_url_8: string | null;
+          image_url_9: string | null;
           is_active: boolean;
+          mobile_content: string | null;
           name: string;
           price: number;
+          promotions_data: Json | null;
           stock: number;
           vendor: string;
           video_url: string | null;
@@ -273,22 +290,40 @@ export type Database = {
           accordion_point3_title?: string | null;
           accordion_point4_content?: string | null;
           accordion_point4_title?: string | null;
+          benefit1_description?: string | null;
+          benefit1_title?: string | null;
+          benefit2_description?: string | null;
+          benefit2_title?: string | null;
+          benefit3_description?: string | null;
+          benefit3_title?: string | null;
+          benefit4_description?: string | null;
+          benefit4_title?: string | null;
           benefits_data?: Json | null;
           comparison_data?: Json | null;
           created_at?: string;
           description: string;
+          desktop_content?: string | null;
           discount_price?: number | null;
           faq_data?: Json | null;
           features_data?: Json | null;
           hero_data?: Json | null;
+          highlights_data?: Json | null;
           id?: string;
           image_url: string;
+          image_url_10?: string | null;
           image_url_2?: string | null;
           image_url_3?: string | null;
           image_url_4?: string | null;
+          image_url_5?: string | null;
+          image_url_6?: string | null;
+          image_url_7?: string | null;
+          image_url_8?: string | null;
+          image_url_9?: string | null;
           is_active?: boolean;
+          mobile_content?: string | null;
           name: string;
           price: number;
+          promotions_data?: Json | null;
           stock: number;
           vendor: string;
           video_url?: string | null;
@@ -303,22 +338,40 @@ export type Database = {
           accordion_point3_title?: string | null;
           accordion_point4_content?: string | null;
           accordion_point4_title?: string | null;
+          benefit1_description?: string | null;
+          benefit1_title?: string | null;
+          benefit2_description?: string | null;
+          benefit2_title?: string | null;
+          benefit3_description?: string | null;
+          benefit3_title?: string | null;
+          benefit4_description?: string | null;
+          benefit4_title?: string | null;
           benefits_data?: Json | null;
           comparison_data?: Json | null;
           created_at?: string;
           description?: string;
+          desktop_content?: string | null;
           discount_price?: number | null;
           faq_data?: Json | null;
           features_data?: Json | null;
           hero_data?: Json | null;
+          highlights_data?: Json | null;
           id?: string;
           image_url?: string;
+          image_url_10?: string | null;
           image_url_2?: string | null;
           image_url_3?: string | null;
           image_url_4?: string | null;
+          image_url_5?: string | null;
+          image_url_6?: string | null;
+          image_url_7?: string | null;
+          image_url_8?: string | null;
+          image_url_9?: string | null;
           is_active?: boolean;
+          mobile_content?: string | null;
           name?: string;
           price?: number;
+          promotions_data?: Json | null;
           stock?: number;
           vendor?: string;
           video_url?: string | null;
@@ -342,7 +395,15 @@ export type Database = {
           id?: string;
           role?: "ADMIN" | "CLIENT";
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey";
+            columns: ["id"];
+            isOneToOne: true;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       reviews: {
         Row: {
@@ -355,7 +416,7 @@ export type Database = {
           is_approved: boolean;
           product_id: string;
           rating: number;
-          user_id: string;
+          user_id: string | null;
         };
         Insert: {
           author_name: string;
@@ -367,7 +428,7 @@ export type Database = {
           is_approved?: boolean;
           product_id: string;
           rating: number;
-          user_id: string;
+          user_id?: string | null;
         };
         Update: {
           author_name?: string;
@@ -379,7 +440,7 @@ export type Database = {
           is_approved?: boolean;
           product_id?: string;
           rating?: number;
-          user_id?: string;
+          user_id?: string | null;
         };
         Relationships: [
           {

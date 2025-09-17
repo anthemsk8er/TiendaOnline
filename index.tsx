@@ -1,14 +1,14 @@
-
-
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
+// FIX: Corrected import path
 import ProductDetailPage from './pages/ProductDetailPage';
 import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
+// FIX: Corrected import path
 import { ProductUploadPage } from './pages_admin/ProductUploadPage';
 import UserManagementPage from './pages_admin/UserManagementPage';
 import OrdersPage from './pages_admin/OrdersPage';
@@ -17,6 +17,7 @@ import DiscountCodeFormPage from './pages_admin/DiscountCodeFormPage';
 import ReviewManagementPage from './pages_admin/ReviewManagementPage';
 import AuthModal from './components/auth/AuthModal';
 import { supabase } from './lib/supabaseClient';
+// FIX: Corrected import path
 import type { Product, CartItem, Profile } from './types';
 import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
 import DiscountTab from './components/shared/DiscountTab';
@@ -42,25 +43,135 @@ const App = () => {
     const [authModalView, setAuthModalView] = useState<'login' | 'register' | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
 
-    // Effect to handle browser's back and forward buttons
+    // Navigation handler
+    const navigate = (newView: string, id: string | null = null, category: string | null = null, slugData: string | null = null) => {
+        const createSlug = (text: string) => text.toString().toLowerCase()
+            .replace(/\s+/g, '-')           // Replace spaces with -
+            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+            .replace(/^-+/, '')             // Trim - from start of text
+            .replace(/-+$/, '');            // Trim - from end of text
+        
+        let path = ''; // Paths for hash routing don't need a leading slash
+        switch (newView) {
+            case 'home':
+                path = '';
+                break;
+            case 'catalog':
+                path = category ? `catalogo/${encodeURIComponent(category)}` : 'catalogo';
+                break;
+            case 'product':
+                path = slugData ? `productos/${createSlug(slugData)}/${id}` : `productos/${id}`;
+                break;
+            case 'contact-faq':
+                path = 'ayuda';
+                break;
+            case 'legal':
+                path = 'legal';
+                break;
+            case 'admin-products':
+                path = 'admin/productos';
+                break;
+            case 'admin-upload':
+                path = id ? `admin/productos/editar/${id}` : 'admin/productos/nuevo';
+                break;
+            case 'admin-users':
+                path = 'admin/usuarios';
+                break;
+            case 'admin-orders':
+                path = 'admin/ordenes';
+                break;
+            case 'admin-reviews':
+                path = 'admin/resenas';
+                break;
+            case 'admin-discounts':
+                path = 'admin/descuentos';
+                break;
+            case 'admin-discount-form':
+                path = id ? `admin/descuentos/editar/${id}` : 'admin/descuentos/nuevo';
+                break;
+            default:
+                path = newView; // Fallback for any other view
+        }
+        
+        window.location.hash = path;
+        window.scrollTo(0, 0);
+    };
+
+    // Effect to handle hash changes for routing
     useEffect(() => {
-        // On initial load, replace the current history state with our home view state.
-        // This ensures the back button works correctly from the very first navigation.
-        window.history.replaceState(currentView, '');
+        const parseHashAndSetView = () => {
+            const path = window.location.hash.substring(1); // Remove '#'
+            const pathParts = path.split('/').filter(p => p);
 
-        const handlePopState = (event: PopStateEvent) => {
-            if (event.state) {
-                // When the user navigates (e.g., clicks 'back'), the browser provides the state.
-                // We update our React state to match, triggering a re-render to the previous view.
-                setCurrentView(event.state);
+            let viewState: ViewState = { view: 'home', productId: null, categoryFilter: null };
+
+            if (pathParts.length > 0) {
+                const view = pathParts[0];
+                switch (view) {
+                    case 'catalogo':
+                        viewState = { view: 'catalog', productId: null, categoryFilter: pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null };
+                        break;
+                    case 'productos':
+                        if (pathParts.length > 1) {
+                            const id = pathParts.length > 2 ? pathParts[2] : pathParts[1];
+                            viewState = { view: 'product', productId: id, categoryFilter: null };
+                        }
+                        break;
+                    case 'ayuda':
+                        viewState = { view: 'contact-faq', productId: null, categoryFilter: null };
+                        break;
+                    case 'legal':
+                        viewState = { view: 'legal', productId: null, categoryFilter: null };
+                        break;
+                    case 'admin':
+                        if (pathParts.length > 1) {
+                            const subView = pathParts[1];
+                            const id = pathParts.length > 3 ? pathParts[3] : null;
+                             if (subView === 'productos') {
+                                if (pathParts[2] === 'nuevo') {
+                                    viewState = { view: 'admin-upload', productId: null, categoryFilter: null };
+                                } else if (pathParts[2] === 'editar' && id) {
+                                    viewState = { view: 'admin-upload', productId: id, categoryFilter: null };
+                                    setEditingProductId(id);
+                                } else {
+                                    viewState = { view: 'admin-products', productId: null, categoryFilter: null };
+                                }
+                            } else if (subView === 'usuarios') {
+                                viewState = { view: 'admin-users', productId: null, categoryFilter: null };
+                            } else if (subView === 'ordenes') {
+                                viewState = { view: 'admin-orders', productId: null, categoryFilter: null };
+                            } else if (subView === 'resenas') {
+                                viewState = { view: 'admin-reviews', productId: null, categoryFilter: null };
+                            } else if (subView === 'descuentos') {
+                                if (pathParts[2] === 'nuevo') {
+                                    viewState = { view: 'admin-discount-form', productId: null, categoryFilter: null };
+                                } else if (pathParts[2] === 'editar' && id) {
+                                    viewState = { view: 'admin-discount-form', productId: id, categoryFilter: null };
+                                    setEditingDiscountCodeId(id);
+                                } else {
+                                    viewState = { view: 'admin-discounts', productId: null, categoryFilter: null };
+                                }
+                            }
+                        }
+                        break;
+                    default:
+                        // The render function will handle the 404 case if the view doesn't exist
+                        viewState = { view: view, productId: null, categoryFilter: null };
+                }
             }
+            
+            setCurrentView(viewState);
         };
 
-        window.addEventListener('popstate', handlePopState);
+        window.addEventListener('hashchange', parseHashAndSetView);
+        // Initial load
+        parseHashAndSetView();
+
         return () => {
-            window.removeEventListener('popstate', handlePopState);
+            window.removeEventListener('hashchange', parseHashAndSetView);
         };
-    }, []); // Empty dependency array ensures this runs only once on mount.
+    }, []); 
 
 
     useEffect(() => {
@@ -149,26 +260,9 @@ const App = () => {
         }
     }, [cartItems]);
 
-    // Navigation handler
-    const navigate = (newView: string, id: string | null = null, category: string | null = null) => {
-        const newViewState: ViewState = { view: newView, productId: id, categoryFilter: category };
-
-        // Only navigate if the view is actually different to avoid duplicate history entries
-        if (JSON.stringify(newViewState) === JSON.stringify(currentView)) {
-            return;
-        }
-        
-        // Push the new view state into the browser's history stack
-        window.history.pushState(newViewState, '');
-        // Update our React state to render the new view
-        setCurrentView(newViewState);
-
-        window.scrollTo(0, 0);
-    };
-
     const handleHomeClick = () => navigate('home');
     const handleCatalogClick = (category?: string) => navigate('catalog', null, category || null);
-    const handleProductClick = (id: string) => navigate('product', id);
+    const handleProductClick = (id: string, name: string) => navigate('product', id, null, name);
     const handleContactFaqClick = () => navigate('contact-faq');
     const handleLegalClick = () => navigate('legal');
 
@@ -189,11 +283,11 @@ const App = () => {
 
     const handleEditProduct = (id: string) => {
         setEditingProductId(id);
-        navigate('admin-upload');
+        navigate('admin-upload', id);
     };
      const handleEditDiscountCode = (id: string) => {
         setEditingDiscountCodeId(id);
-        navigate('admin-discount-form');
+        navigate('admin-discount-form', id);
     };
     const handleUploadFinished = () => {
         setEditingProductId(null);
@@ -308,11 +402,11 @@ const App = () => {
 
         switch (currentView.view) {
             case 'home':
-                return <HomePage {...pageProps} />;
+                return <HomePage {...pageProps} onEditProduct={handleEditProduct} />;
             case 'catalog':
-                return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} />;
+                return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} onEditProduct={handleEditProduct} />;
             case 'product':
-                return <ProductDetailPage {...pageProps} productId={currentView.productId} />;
+                return <ProductDetailPage {...pageProps} productId={currentView.productId} onEditProduct={handleEditProduct} />;
             case 'contact-faq':
                 return <ContactFaqPage {...pageProps} />;
             case 'legal':
@@ -329,6 +423,7 @@ const App = () => {
                     {...pageProps}
                     productIdToEdit={editingProductId} 
                     onFinished={handleUploadFinished}
+                    onViewProduct={handleProductClick}
                     />;
             case 'admin-users':
                  return <UserManagementPage {...pageProps} />;

@@ -1,5 +1,7 @@
 
+
 import React from 'react';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { Review } from '../../types';
 import StarRating from './StarRating';
 import { CheckBadgeIcon } from './Icons';

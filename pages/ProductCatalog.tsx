@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
@@ -13,7 +13,7 @@ import WhatsAppButton from '../components/shared/WhatsAppButton';
 const bannerImage = 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/product-catalog/productCatalogHeroImage.jpg';
 
 interface ProductCatalogProps {
-  onProductClick: (productId: string) => void;
+  onProductClick: (productId: string, productName: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -21,6 +21,9 @@ interface ProductCatalogProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminOrdersClick?: () => void;
+  onAdminDiscountManagementClick?: () => void;
+  onAdminReviewManagementClick?: () => void;
   category?: string;
   cartItems: CartItem[];
   onAddToCart: (product: Product, quantity: number) => void;
@@ -31,13 +34,15 @@ interface ProductCatalogProps {
   profile: Profile | null;
   onLogout: () => void;
   showAuthModal: (view: 'login' | 'register') => void;
+  onEditProduct: (id: string) => void;
 }
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
     onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
     onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick,
+    onAdminOrdersClick, onAdminDiscountManagementClick, onAdminReviewManagementClick,
     category, cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
-    session, profile, onLogout, showAuthModal
+    session, profile, onLogout, showAuthModal, onEditProduct
 }) => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -87,6 +92,9 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         onAdminProductUploadClick={onAdminProductUploadClick} 
         onAdminProductManagementClick={onAdminProductManagementClick}
         onAdminUserManagementClick={onAdminUserManagementClick}
+        onAdminOrdersClick={onAdminOrdersClick}
+        onAdminDiscountManagementClick={onAdminDiscountManagementClick}
+        onAdminReviewManagementClick={onAdminReviewManagementClick}
         cartItemCount={cartItemCount}
         session={session}
         profile={profile}
@@ -159,19 +167,22 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
                 onAddToCart={onAddToCart}
                 refetchTrigger={refetchTrigger}
                 onCartOpen={handleOpenCart}
+                profile={profile}
+                onEditProduct={onEditProduct}
             />
         </div>
 
       </main>
       <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
-      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity} />
+      {/* FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity */}
+      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} />
       <Cart 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
         onCheckout={handleProceedToCheckout}
         items={cartItems}
         onRemoveItem={onRemoveFromCart}
-        onUpdateQuantity={onUpdateCartQuantity}
+        onUpdateCartQuantity={onUpdateCartQuantity}
       />
        <WhatsAppButton phoneNumber="965210993" message={whatsappMessage} />
     </div>

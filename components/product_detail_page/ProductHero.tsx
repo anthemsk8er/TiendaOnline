@@ -1,5 +1,7 @@
 
+
 import React from 'react';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { HeroData, HeroBenefit } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';
 

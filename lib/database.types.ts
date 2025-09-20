@@ -276,6 +276,7 @@ export type Database = {
           name: string;
           price: number;
           promotions_data: Json | null;
+          slug: string | null;
           stock: number;
           vendor: string;
           video_url: string | null;
@@ -324,6 +325,7 @@ export type Database = {
           name: string;
           price: number;
           promotions_data?: Json | null;
+          slug?: string | null;
           stock: number;
           vendor: string;
           video_url?: string | null;
@@ -372,6 +374,7 @@ export type Database = {
           name?: string;
           price?: number;
           promotions_data?: Json | null;
+          slug?: string | null;
           stock?: number;
           vendor?: string;
           video_url?: string | null;

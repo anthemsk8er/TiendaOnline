@@ -18,14 +18,14 @@ const ProductDetailsAccordion: React.FC<ProductDetailsAccordionProps> = ({ detai
   }
 
   return (
-    <div className="mt-8 border-t border-gray-200 divide-y divide-gray-200">
+    <div className="mt-4 py-6 px-4">
       {details.map((item, index) => {
         const isOpen = openIndex === index;
         return (
           <div key={index}>
             <button
               onClick={() => handleToggle(index)}
-              className="w-full flex justify-between items-center py-5 text-left gap-4"
+              className="w-full flex justify-between items-center py-3 text-left text-sm gap-4"
               aria-expanded={isOpen}
             >
               <span className="flex items-center gap-3">
@@ -34,11 +34,12 @@ const ProductDetailsAccordion: React.FC<ProductDetailsAccordionProps> = ({ detai
               </span>
               <ChevronDownIcon className={`w-7 h-7 text-gray-500 transition-transform duration-300 ${isOpen ? 'transform rotate-180' : ''}`} />
             </button>
+
             <div
               className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
             >
               <div className="overflow-hidden">
-                <div className="pb-5 text-gray-600 pl-8 pr-4 prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: item.content }} />
+                <div className="pb-5 text-gray-600 pl-8 pr-4 prose prose-sm text-sm max-w-none" dangerouslySetInnerHTML={{ __html: item.content }} />
               </div>
             </div>
           </div>

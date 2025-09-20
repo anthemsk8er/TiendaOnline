@@ -20,18 +20,17 @@ import { supabase } from './lib/supabaseClient';
 // FIX: Corrected import path
 import type { Product, CartItem, Profile } from './types';
 import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
-import DiscountTab from './components/shared/DiscountTab';
 
 interface ViewState {
     view: string;
-    productId: string | null;
+    productSlug: string | null;
     categoryFilter: string | null;
 }
 
 const App = () => {
     const [currentView, setCurrentView] = useState<ViewState>({
         view: 'home',
-        productId: null,
+        productSlug: null,
         categoryFilter: null,
     });
     const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -45,13 +44,6 @@ const App = () => {
 
     // Navigation handler
     const navigate = (newView: string, id: string | null = null, category: string | null = null, slugData: string | null = null) => {
-        const createSlug = (text: string) => text.toString().toLowerCase()
-            .replace(/\s+/g, '-')           // Replace spaces with -
-            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-            .replace(/^-+/, '')             // Trim - from start of text
-            .replace(/-+$/, '');            // Trim - from end of text
-        
         let path = ''; // Paths for hash routing don't need a leading slash
         switch (newView) {
             case 'home':
@@ -61,7 +53,7 @@ const App = () => {
                 path = category ? `catalogo/${encodeURIComponent(category)}` : 'catalogo';
                 break;
             case 'product':
-                path = slugData ? `productos/${createSlug(slugData)}/${id}` : `productos/${id}`;
+                path = `productos/${slugData}`;
                 break;
             case 'contact-faq':
                 path = 'ayuda';
@@ -104,25 +96,25 @@ const App = () => {
             const path = window.location.hash.substring(1); // Remove '#'
             const pathParts = path.split('/').filter(p => p);
 
-            let viewState: ViewState = { view: 'home', productId: null, categoryFilter: null };
+            let viewState: ViewState = { view: 'home', productSlug: null, categoryFilter: null };
 
             if (pathParts.length > 0) {
                 const view = pathParts[0];
                 switch (view) {
                     case 'catalogo':
-                        viewState = { view: 'catalog', productId: null, categoryFilter: pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null };
+                        viewState = { view: 'catalog', productSlug: null, categoryFilter: pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null };
                         break;
                     case 'productos':
                         if (pathParts.length > 1) {
-                            const id = pathParts.length > 2 ? pathParts[2] : pathParts[1];
-                            viewState = { view: 'product', productId: id, categoryFilter: null };
+                            const slug = pathParts[1];
+                            viewState = { view: 'product', productSlug: slug, categoryFilter: null };
                         }
                         break;
                     case 'ayuda':
-                        viewState = { view: 'contact-faq', productId: null, categoryFilter: null };
+                        viewState = { view: 'contact-faq', productSlug: null, categoryFilter: null };
                         break;
                     case 'legal':
-                        viewState = { view: 'legal', productId: null, categoryFilter: null };
+                        viewState = { view: 'legal', productSlug: null, categoryFilter: null };
                         break;
                     case 'admin':
                         if (pathParts.length > 1) {
@@ -130,34 +122,34 @@ const App = () => {
                             const id = pathParts.length > 3 ? pathParts[3] : null;
                              if (subView === 'productos') {
                                 if (pathParts[2] === 'nuevo') {
-                                    viewState = { view: 'admin-upload', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-upload', productSlug: null, categoryFilter: null };
                                 } else if (pathParts[2] === 'editar' && id) {
-                                    viewState = { view: 'admin-upload', productId: id, categoryFilter: null };
+                                    viewState = { view: 'admin-upload', productSlug: null, categoryFilter: null };
                                     setEditingProductId(id);
                                 } else {
-                                    viewState = { view: 'admin-products', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-products', productSlug: null, categoryFilter: null };
                                 }
                             } else if (subView === 'usuarios') {
-                                viewState = { view: 'admin-users', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-users', productSlug: null, categoryFilter: null };
                             } else if (subView === 'ordenes') {
-                                viewState = { view: 'admin-orders', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-orders', productSlug: null, categoryFilter: null };
                             } else if (subView === 'resenas') {
-                                viewState = { view: 'admin-reviews', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-reviews', productSlug: null, categoryFilter: null };
                             } else if (subView === 'descuentos') {
                                 if (pathParts[2] === 'nuevo') {
-                                    viewState = { view: 'admin-discount-form', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-discount-form', productSlug: null, categoryFilter: null };
                                 } else if (pathParts[2] === 'editar' && id) {
-                                    viewState = { view: 'admin-discount-form', productId: id, categoryFilter: null };
+                                    viewState = { view: 'admin-discount-form', productSlug: null, categoryFilter: null };
                                     setEditingDiscountCodeId(id);
                                 } else {
-                                    viewState = { view: 'admin-discounts', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-discounts', productSlug: null, categoryFilter: null };
                                 }
                             }
                         }
                         break;
                     default:
                         // The render function will handle the 404 case if the view doesn't exist
-                        viewState = { view: view, productId: null, categoryFilter: null };
+                        viewState = { view: view, productSlug: null, categoryFilter: null };
                 }
             }
             
@@ -262,7 +254,7 @@ const App = () => {
 
     const handleHomeClick = () => navigate('home');
     const handleCatalogClick = (category?: string) => navigate('catalog', null, category || null);
-    const handleProductClick = (id: string, name: string) => navigate('product', id, null, name);
+    const handleProductClick = (slug: string) => navigate('product', null, null, slug);
     const handleContactFaqClick = () => navigate('contact-faq');
     const handleLegalClick = () => navigate('legal');
 
@@ -406,7 +398,7 @@ const App = () => {
             case 'catalog':
                 return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} onEditProduct={handleEditProduct} />;
             case 'product':
-                return <ProductDetailPage {...pageProps} productId={currentView.productId} onEditProduct={handleEditProduct} />;
+                return <ProductDetailPage {...pageProps} productSlug={currentView.productSlug} onEditProduct={handleEditProduct} />;
             case 'contact-faq':
                 return <ContactFaqPage {...pageProps} />;
             case 'legal':
@@ -452,7 +444,6 @@ const App = () => {
         <>
             {renderView()}
             {authModalView && <AuthModal view={authModalView} onClose={closeAuthModal} />}
-            <DiscountTab />
         </>
     );
 };

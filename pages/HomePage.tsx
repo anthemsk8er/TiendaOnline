@@ -32,7 +32,7 @@ const heroData = {
 
 
 interface HomePageProps {
-  onProductClick: (productId: string, productName: string) => void;
+  onProductClick: (slug: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -63,15 +63,15 @@ const HomePage: React.FC<HomePageProps> = ({
 }) => {
     const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
     const [isCartOpen, setIsCartOpen] = useState(false);
-    const [citratoProduct, setCitratoProduct] = useState<{id: string, name: string} | null>(null);
+    const [citratoProduct, setCitratoProduct] = useState<{id: string, name: string, slug: string | null} | null>(null);
     
     useEffect(() => {
         const fetchCitratoId = async () => {
             if (!supabase) return;
             // Fetch the product ID for Citrato de Magnesio to link the hero button correctly.
-            const { data, error }: PostgrestSingleResponse<{ id: string; name: string }> = await supabase
+            const { data, error }: PostgrestSingleResponse<{ id: string; name: string; slug: string | null; }> = await supabase
                 .from('products')
-                .select('id, name')
+                .select('id, name, slug')
                 .ilike('name', '%citrato de magnesio%')
                 .limit(1)
                 .single();
@@ -146,8 +146,8 @@ const HomePage: React.FC<HomePageProps> = ({
                
                         <button
                             onClick={() => {
-                                if (citratoProduct) {
-                                    onProductClick(citratoProduct.id, citratoProduct.name);
+                                if (citratoProduct && citratoProduct.slug) {
+                                    onProductClick(citratoProduct.slug);
                                 } else {
                                     // Fallback to the 'Energía' category if product not found
                                     onCatalogClick('Energía');

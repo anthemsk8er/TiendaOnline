@@ -3,7 +3,7 @@ import type { SupabaseProduct, Product, Profile } from '../../types';
 
 interface ProductCardProps {
   product: SupabaseProduct;
-  onProductClick: (id: string, name: string) => void;
+  onProductClick: (slug: string) => void;
   onAddToCart: (product: Product, quantity: number) => void;
   onCartOpen?: () => void;
   profile?: Profile | null;
@@ -16,6 +16,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
 
     const productForCart: Product = {
       id: product.id,
+      slug: product.slug,
       vendor: product.vendor,
       title: product.name,
       price: product.discount_price ?? product.price,
@@ -41,7 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
   return (
     <div 
       className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer group flex flex-col"
-      onClick={() => onProductClick(product.id, product.name)}
+      onClick={() => product.slug && onProductClick(product.slug)}
       aria-label={`View details for ${product.name}`}
     >
       <div className="relative">

@@ -6,27 +6,57 @@ import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
 interface ProductGalleryProps {
   images: string[];
   videoUrl: string | null;
+  mainImageIndex: number;
+  setMainImageIndex: (index: number) => void;
 }
 
-const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => {
-  const [mainImageIndex, setMainImageIndex] = useState(0);
+const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl, mainImageIndex, setMainImageIndex }) => {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
   const handleNext = () => {
-    setMainImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    // FIX: Pass the calculated new index directly instead of a functional update to match prop type.
+    setMainImageIndex((mainImageIndex + 1) % images.length);
   };
 
   const handlePrev = () => {
-    setMainImageIndex((prevIndex) => (prevIndex - 1 + images.length) % images.length);
+    // FIX: Pass the calculated new index directly instead of a functional update to match prop type.
+    setMainImageIndex((mainImageIndex - 1 + images.length) % images.length);
   };
   
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    // Swipe left (next image)
+    if (diff > 50) {
+      handleNext();
+    }
+
+    // Swipe right (previous image)
+    if (diff < -50) {
+      handlePrev();
+    }
+    
+    setTouchStart(null);
+  };
+
   if (!images || images.length === 0) {
     return <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">No Image</div>;
   }
 
   return (
-    <div className="relative">
-      <div className="aspect-square relative overflow-hidden shadow-lg bg-gray-100">
+    <div className="flex flex-col gap-4">
+      <div
+        className="aspect-square relative overflow-hidden shadow-lg bg-gray-100"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
         {images.map((image, index) => (
           <img
             key={index}
@@ -46,27 +76,21 @@ const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => 
             </>
         )}
       </div>
-      <div className="flex space-x-2 mt-3 overflow-x-auto p-1">
-        {images.map((image, index) => (
-          <button
-            key={index}
-            onClick={() => setMainImageIndex(index)}
-            className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-colors ${mainImageIndex === index ? 'border-[#16a085]' : 'border-transparent'}`}
-          >
-            <img src={`${image}?width=100&height=100&resize=cover`} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
-          </button>
-        ))}
-        {videoUrl && (
-          <button
-            onClick={() => setIsVideoOpen(true)}
-            className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 border-transparent flex items-center justify-center bg-gray-800 text-white"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" viewBox="0 0 20 20" fill="currentColor">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-            </svg>
-          </button>
-        )}
-      </div>
+
+       {images.length > 1 && (
+        <div className="flex space-x-2 overflow-x-auto p-1">
+            {images.map((image, index) => (
+                <button
+                    key={index}
+                    onClick={() => setMainImageIndex(index)}
+                    className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all duration-200 ${mainImageIndex === index ? 'border-[#16a085] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                >
+                    <img src={`${image}?width=100&height=100&resize=cover`} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+            ))}
+        </div>
+      )}
+
        {videoUrl && <VideoPopup isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} videoUrl={videoUrl} />}
     </div>
   );

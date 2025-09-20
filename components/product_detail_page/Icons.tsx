@@ -1,5 +1,6 @@
 
 
+
 import React from 'react';
 
 export const StarIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -292,5 +293,17 @@ export const GlobeAltIcon: React.FC<{className?: string; strokeWidth?: number}> 
 export const ShieldCheckIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l2.25 2.25 4.5-4.5m-6.75 2.25c.621 1.168 1.895 2 3.375 2 1.48 0 2.754-.832 3.375-2M21 12c0 4.556-3.046 8.41-7.258 9.497a18.274 18.274 0 01-1.332.222c-.52.072-1.05.111-1.59.135a18.636 18.636 0 01-1.59-.135c-.47-.058-.93-.14-1.332-.222C6.046 20.41 3 16.556 3 12V6.321c0-1.04.85-1.9 1.89-1.928a17.848 17.848 0 011.66-.098 18.274 18.274 0 014.11 0c.58.04 1.14.12 1.66.218 1.04.188 1.89 1.088 1.89 2.119V12Z" />
+    </svg>
+);
+
+export const SparklesIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth=1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456zM16.898 20.562 16.5 21.75l-.398-1.188a3.375 3.375 0 0 0-2.455-2.456L12.75 18l1.188-.398a3.375 3.375 0 0 0 2.455-2.456L16.5 14.25l.398 1.188a3.375 3.375 0 0 0 2.456 2.456L20.25 18l-1.188.398a3.375 3.375 0 0 0-2.456 2.456z" />
+    </svg>
+);
+
+export const ShareIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 0-2.186 2.25 2.25 0 0 0 0 2.186Zm0-12.814a2.25 2.25 0 1 0 0-2.186 2.25 2.25 0 0 0 0 2.186Z" />
     </svg>
 );

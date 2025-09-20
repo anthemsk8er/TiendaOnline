@@ -1,5 +1,3 @@
-
-
 import React, { useState, useEffect } from 'react';
 import type { Review } from '../../types';
 import { supabase } from '../../lib/supabaseClient';
@@ -64,9 +62,9 @@ const ProductReviewsSection: React.FC<ProductReviewsSectionProps> = ({ productId
   }
 
   return (
-    <section className="bg-gray-50 py-16 lg:py-24 mt-16 lg:mt-24">
+    <section className="bg-white py-16 lg:py-24 mt-16 lg:mt-24">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl md:text-3xl font-bold text-center text-gray-800 mb-12 animate-fade-in-up">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center text-gray-800 mb-12 animate-fade-in-up">
           Comentarios de Nuestros Clientes
         </h2>
         

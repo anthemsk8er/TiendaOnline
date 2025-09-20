@@ -19,8 +19,8 @@ import VideoWithFeatures from '../components/product_detail_page/VideoWithFeatur
 import RichTextSection from '../components/product_detail_page/RichTextSection';
 
 interface ProductDetailPageProps {
-  productId: string | null;
-  onProductClick: (productId: string, productName: string) => void;
+  productSlug: string | null;
+  onProductClick: (slug: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -43,17 +43,18 @@ interface ProductDetailPageProps {
 }
 
 const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
-  const { productId, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct } = props;
+  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct } = props;
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
   
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!productId) {
-        setError('No product ID provided.');
+      if (!productSlug) {
+        setError('No se ha proporcionado un producto.');
         setLoading(false);
         return;
       }
@@ -69,11 +70,15 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
       const { data, error: fetchError } = await supabase
         .from('products')
         .select('*')
-        .eq('id', productId)
+        .eq('slug', productSlug)
         .single();
 
       if (fetchError) {
-        setError(`Error fetching product: ${fetchError.message}`);
+        if (fetchError.code === 'PGRST116') {
+          setError('Producto no encontrado. Es posible que el enlace sea incorrecto o que el producto ya no esté disponible.');
+        } else {
+          setError(`Error al cargar el producto: ${fetchError.message}`);
+        }
       } else if (data) {
         const p = data as SupabaseProduct;
         const images = [
@@ -84,6 +89,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
         
         const transformedProduct: ProductType = {
           id: p.id,
+          slug: p.slug,
           vendor: p.vendor,
           title: p.name,
           price: p.discount_price ?? p.price,
@@ -118,13 +124,13 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
         };
         setProduct(transformedProduct);
       } else {
-        setError('Product not found.');
+        setError('Producto no encontrado.');
       }
       setLoading(false);
     };
 
     fetchProduct();
-  }, [productId]);
+  }, [productSlug]);
 
   const handleOpenCart = () => setIsCartOpen(true);
   
@@ -165,18 +171,34 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
   
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
-      </div>
+      <>
+        <Header {...headerProps} />
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
+        </div>
+        <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
+      </>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="text-center py-20">
-        <h2 className="text-2xl font-bold">Error</h2>
-        <p className="text-red-500 mt-2">{error || 'Could not load product.'}</p>
-      </div>
+        <div className="bg-gray-50 min-h-screen flex flex-col">
+            <Header {...headerProps} />
+            <main className="flex-grow flex items-center justify-center p-4">
+                <div className="text-center p-8 bg-white max-w-lg w-full mx-auto rounded-2xl shadow-lg border border-gray-200">
+                    <h2 className="text-2xl font-bold text-[#1a2b63]">Error</h2>
+                    <p className="text-red-600 mt-2">{error || 'No se pudo cargar el producto.'}</p>
+                    <button 
+                        onClick={props.onHomeClick}
+                        className="mt-8 bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors"
+                    >
+                        Volver al Inicio
+                    </button>
+                </div>
+            </main>
+            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
+        </div>
     );
   }
 
@@ -188,7 +210,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
       <main className="pb-24">
         <div className="container mx-auto px-0 sm:px-6 lg:px-8 pt-0">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-              <ProductGallery images={product.images} videoUrl={null} />
+              <ProductGallery 
+                images={product.images} 
+                videoUrl={null}
+                mainImageIndex={mainImageIndex}
+                setMainImageIndex={setMainImageIndex}
+              />
               <div>
                 <ProductInfo 
                   product={product} 
@@ -216,9 +243,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
         <ProductBenefitsSection benefitsData={product.benefits_data} />
         <ComparisonTable comparisonData={product.comparison_data} productImageUrl={product.images[0]} />
         <FaqSection faqData={product.faq_data} />
-        
-
         <ProductReviewsSection productId={product.id} />
+        
       </main>
       <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
       <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} />
@@ -239,18 +265,12 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
       {/* Sticky "Add to Cart" Bar */}
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] p-3 z-40">
         <div className="container mx-auto px-4 flex justify-between items-center gap-4">
-            <div className="flex items-center gap-3 overflow-hidden">
-                <img src={product.images[0]} alt={product.title} className="w-12 h-12 rounded-md object-cover flex-shrink-0" />
-                <div className="flex-grow min-w-0">
-                    <h3 className="text-sm font-bold text-gray-800 truncate">{product.title}</h3>
-                    <p className="text-sm font-semibold text-gray-700">S/ {product.price.toFixed(2)}</p>
-                </div>
-            </div>
+
             <button
                 onClick={() => handleOrderNow(1)}
-                className="bg-teal-600 text-white font-bold py-3 px-5 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap text-sm shadow-md"
+                className="bg-teal-600 w-full text-white font-bold py-3 px-5 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap text-sm shadow-md"
             >
-                👉 Obtener hoy mismo
+                👉 Obtener hoy Contraentrega
             </button>
         </div>
       </div>

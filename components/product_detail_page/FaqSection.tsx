@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { ChevronDownIcon, ChevronUpIcon, CheckBadgeIcon } from './Icons';
 // FIX: Changed import path to be relative to the root `types.ts`
@@ -23,8 +21,8 @@ const FaqSection: React.FC<FaqSectionProps> = ({ faqData }) => {
   const { title, items } = faqData;
 
   return (
-    <section className="mt-16 lg:mt-24 px-4">
-      <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1a2b63] mb-8 animate-fade-in-up">{title}</h2>
+    <section className="mt-16 lg:mt-24 px-4 pb-8">
+      <h2 className="text-2xl sm:text-3xl font-bold text-center text-[#1a2b63] mb-8 animate-fade-in-up">{title}</h2>
       <div className="max-w-4xl mx-auto">
         {items.map((faq, index) => {
           const isOpen = openIndex === index;
@@ -36,8 +34,8 @@ const FaqSection: React.FC<FaqSectionProps> = ({ faqData }) => {
                 aria-expanded={isOpen}
               >
                 <span className="flex items-center gap-3">
-                  <CheckBadgeIcon className="w-6 h-6 text-gray-400 flex-shrink-0" strokeWidth={1} />
-                  <span className="font-semibold text-[#1a2b63]">{faq.question}</span>
+                  <CheckBadgeIcon className="w-5 h-5 text-gray-400 flex-shrink-0" strokeWidth={1} />
+                  <span className="font-semibold text-base text-[#1a2b63]">{faq.question}</span>
                 </span>
                 {isOpen ? <ChevronUpIcon /> : <ChevronDownIcon />}
               </button>
@@ -45,7 +43,7 @@ const FaqSection: React.FC<FaqSectionProps> = ({ faqData }) => {
                 className={`grid transition-all duration-300 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}
               >
                 <div className="overflow-hidden">
-                    <p className="pb-5 text-gray-600 pl-9 pr-4">
+                    <p className="pb-5 text-sm text-gray-600 pl-8 pr-4">
                         {faq.answer}
                     </p>
                 </div>

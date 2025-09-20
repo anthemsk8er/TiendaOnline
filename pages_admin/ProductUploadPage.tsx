@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
-import type { SupabaseProduct, Profile, Category, Tag, ProductHighlightsData, PromotionsData, PromotionCard } from '../../types';
+import type { SupabaseProduct, Profile, Category, Tag, ProductHighlightsData, PromotionsData, PromotionCard, PromotionPill } from '../types';
 import type { Session } from '@supabase/supabase-js';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
@@ -24,7 +24,7 @@ interface ProductUploadPageProps {
   onLogout: () => void;
   showAuthModal: (view: 'login' | 'register') => void;
   cartItemCount: number;
-  onViewProduct: (id: string, name: string) => void;
+  onViewProduct: (slug: string) => void;
 }
 
 // Omit fields that are auto-generated or handled separately
@@ -32,6 +32,7 @@ type ProductFormData = Omit<SupabaseProduct, 'id' | 'created_at' | 'categories' 
 
 const initialFormState: ProductFormData = {
   name: '',
+  slug: '',
   vendor: '',
   description: '',
   price: 0,
@@ -88,13 +89,103 @@ const initialHighlightsState: ProductHighlightsData = {
 };
 
 const initialPromotionsState: PromotionsData = {
-    title: '¡Aprovecha las ofertas online!',
-    subtitle: 'Te contactamos por whatsapp para confirmar tu envío',
-    countdownEndDate: '',
-    promotions: [],
+    title: 'Aprovecha las Ofertas Exclusivas',
+    subtitle: 'Oferta especial por tiempo limitado. ¡No te quedes sin el tuyo!',
+    countdownEndDate: new Date(new Date().setDate(new Date().getDate() + 3)).toISOString(),
+    promotions: [
+        { id: 1, isBestDeal: false, pills: [{ text: '-20% dcto', icon: 'sparkles' }], imageUrl: '', price: 0, originalPrice: 0, title: 'Comprar 1 unidad', subtitle: '', pricePerUnitText: null, buttonText: 'Lo Quiero', footerText: 'Envío S/10' },
+        { id: 2, isBestDeal: false, pills: [{ text: '-25% dcto', icon: 'sparkles' }], imageUrl: '', price: 0, originalPrice: 0, title: 'Comprar 2 unidades', subtitle: 'S/ 0.00 por frasco', pricePerUnitText: null, buttonText: 'Lo Quiero', footerText: null },
+        { id: 3, isBestDeal: true, pills: [{ text: 'MEJOR PRECIO', icon: 'check' }, { text: '-63% dcto', icon: 'sparkles' }], imageUrl: '', price: 0, originalPrice: 0, title: 'Comprar 3 unidades', subtitle: null, pricePerUnitText: 'S/ 0.00 POR FRASCO', buttonText: '¡Aprovechar Oferta!', footerText: 'Envío gratis a todo el Perú' },
+    ]
 };
 
 const jsonToString = (json: any) => json ? JSON.stringify(json, null, 2) : '';
+
+// Helper function to upload files to Supabase Storage
+const uploadFile = async (file: File): Promise<string> => {
+    if (!supabase) throw new Error("Supabase client is not available.");
+
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+    const filePath = `img/products/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+        .from('products')
+        .upload(filePath, file);
+
+    if (uploadError) {
+        throw uploadError;
+    }
+
+    const { data } = supabase.storage
+        .from('products')
+        .getPublicUrl(filePath);
+
+    return data.publicUrl;
+};
+
+const createSlug = (text: string) => text.toString().toLowerCase()
+    .replace(/\s+/g, '-')           // Replace spaces with -
+    .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
+    .replace(/\-\-+/g, '-')         // Replace multiple - with single -
+    .replace(/^-+/, '')             // Trim - from start of text
+    .replace(/-+$/, '');            // Trim - from end of text
+
+
+// Reusable Image Upload Component
+const ImageUploadField = ({ label, value, onUpload, onClear }: { label: string, value: string | null | undefined, onUpload: (url: string) => void, onClear: () => void }) => {
+    const [uploading, setUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        setUploading(true);
+        setError(null);
+        try {
+            const publicUrl = await uploadFile(file);
+            onUpload(publicUrl);
+        } catch (err: any) {
+            setError(err.message || 'Error al subir la imagen.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-700">{label}</label>
+            <div className="mt-1 flex items-center gap-4 p-2 border border-gray-300 rounded-md bg-slate-50 min-h-[72px]">
+                {value ? (
+                    <img src={value} alt="Preview" className="w-16 h-16 object-cover rounded-md" />
+                ) : (
+                    <div className="w-16 h-16 bg-gray-200 rounded-md flex items-center justify-center text-xs text-gray-500 text-center">Sin imagen</div>
+                )}
+                <div className="flex-grow">
+                    {uploading ? (
+                        <div className="text-sm text-gray-500">Subiendo...</div>
+                    ) : (
+                        <div className="flex flex-col gap-1">
+                            <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm bg-white hover:bg-gray-100 text-gray-800 font-semibold py-1.5 px-3 border border-gray-300 rounded-md shadow-sm">
+                                {value ? 'Cambiar' : 'Subir Imagen'}
+                            </button>
+                            {value && (
+                                <button type="button" onClick={onClear} className="text-xs text-red-600 hover:text-red-800 text-left">
+                                    Eliminar
+                                </button>
+                            )}
+                        </div>
+                    )}
+                    <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
+                </div>
+            </div>
+             {error && <p className="text-red-500 text-xs mt-1">{error}</p>}
+        </div>
+    );
+};
+
 
 export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdToEdit, onFinished, ...props }) => {
     const isEditMode = !!productIdToEdit;
@@ -135,22 +226,45 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                 .single();
                 
                 if (productError) {
-                setMessage({ type: 'error', text: 'Error al cargar el producto: ' + productError.message });
+                    setMessage({ type: 'error', text: 'Error al cargar el producto: ' + productError.message });
                 } else if (productData) {
-                const { product_categories, product_tags, highlights_data, promotions_data, ...rest } = productData as any;
-                setFormData(rest);
-                if (highlights_data) {
-                    setHighlightsData({
-                        ...initialHighlightsState,
-                        ...highlights_data,
-                        stats: (highlights_data.stats && highlights_data.stats.length === 3) ? highlights_data.stats : initialHighlightsState.stats,
-                    });
-                } else {
-                    setHighlightsData(initialHighlightsState);
-                }
-                setPromotionsData(promotions_data || initialPromotionsState);
-                setSelectedCategories(product_categories.map((pc: any) => pc.categories.id));
-                setSelectedTags(product_tags.map((pt: any) => pt.tags.id));
+                    const { product_categories, product_tags, highlights_data, promotions_data, ...rest } = productData as any;
+                    setFormData(rest);
+
+                    if (highlights_data) {
+                        setHighlightsData({
+                            ...initialHighlightsState,
+                            ...highlights_data,
+                            stats: (highlights_data.stats && highlights_data.stats.length === 3) ? highlights_data.stats : initialHighlightsState.stats,
+                        });
+                    } else {
+                        setHighlightsData(initialHighlightsState);
+                    }
+                    
+                    if (promotions_data) {
+                        const loadedPromos = promotions_data as unknown as PromotionsData;
+                        const promotionsToMerge = Array.isArray(loadedPromos.promotions) ? loadedPromos.promotions : [];
+                        const mergedPromos = initialPromotionsState.promotions.map(initialPromo => {
+                            const loadedPromo = promotionsToMerge.find(p => p.id === initialPromo.id);
+                            
+                            if (loadedPromo) {
+                                const newPromo = { ...initialPromo, ...loadedPromo };
+                                const loadedPills = Array.isArray(loadedPromo.pills) ? loadedPromo.pills : [];
+                                newPromo.pills = initialPromo.pills.map((initialPill, index) => {
+                                    return loadedPills[index] ? { ...initialPill, ...loadedPills[index] } : initialPill;
+                                });
+                                return newPromo;
+                            }
+                            
+                            return initialPromo;
+                        });
+                        setPromotionsData({ ...initialPromotionsState, ...loadedPromos, promotions: mergedPromos });
+                    } else {
+                        setPromotionsData(initialPromotionsState);
+                    }
+
+                    setSelectedCategories(product_categories.map((pc: any) => pc.categories.id));
+                    setSelectedTags(product_tags.map((pt: any) => pt.tags.id));
                 }
             } else {
                 setFormData(initialFormState);
@@ -204,41 +318,6 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
             return { ...prev, [section]: newSection };
         });
     };
-    
-    const handlePromotionsDataChange = (field: keyof PromotionsData, value: any) => {
-        setPromotionsData(prev => ({ ...prev, [field]: value }));
-    };
-
-    const handlePromotionCardChange = (index: number, field: keyof PromotionCard, value: any) => {
-        setPromotionsData(prev => {
-            const newPromotions = [...prev.promotions];
-            newPromotions[index] = { ...newPromotions[index], [field]: value };
-            return { ...prev, promotions: newPromotions };
-        });
-    };
-    
-    const addPromotionCard = () => {
-        setPromotionsData(prev => {
-            if (prev.promotions.length >= 4) return prev;
-            const newCard: PromotionCard = {
-                id: Date.now(),
-                header: '',
-                title: `Comprar ${prev.promotions.length + 1} unidad(es)`,
-                price: 0,
-                originalPrice: null,
-                tag: '',
-                isBestDeal: false,
-            };
-            return { ...prev, promotions: [...prev.promotions, newCard] };
-        });
-    };
-
-    const removePromotionCard = (index: number) => {
-        setPromotionsData(prev => ({
-            ...prev,
-            promotions: prev.promotions.filter((_, i) => i !== index),
-        }));
-    };
 
     const addHighlightItem = (section: 'info_points' | 'guarantees') => {
         setHighlightsData(prev => {
@@ -254,6 +333,24 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
             ...prev,
             [section]: prev[section].filter((_, i) => i !== index),
         }));
+    };
+    
+    const handlePromotionsChange = (promoIndex: number, field: keyof PromotionCard, value: any) => {
+        setPromotionsData(prev => {
+            const newPromos = [...prev.promotions];
+            (newPromos[promoIndex] as any)[field] = value;
+            return { ...prev, promotions: newPromos };
+        });
+    };
+
+    const handlePillChange = (promoIndex: number, pillIndex: number, field: keyof PromotionPill, value: string) => {
+        setPromotionsData(prev => {
+            const newPromos = [...prev.promotions];
+            const newPills = [...newPromos[promoIndex].pills];
+            (newPills[pillIndex] as any)[field] = value;
+            newPromos[promoIndex] = { ...newPromos[promoIndex], pills: newPills };
+            return { ...prev, promotions: newPromos };
+        });
     };
 
 
@@ -331,8 +428,8 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
             setIsToastVisible(true);
             toastTimerRef.current = window.setTimeout(() => setIsToastVisible(false), 5000);
             
-            if (andView && productId) {
-                props.onViewProduct(productId, productPayload.name);
+            if (andView && productPayload.slug) {
+                props.onViewProduct(productPayload.slug);
             } else if (wasInCreateMode && productId) {
                 window.location.hash = `admin/productos/editar/${productId}`;
             }
@@ -357,7 +454,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
         { id: 'pricing-stock', title: 'Precio y Stock' },
         { id: 'media-relations', title: 'Imágenes y Relaciones' },
         { id: 'highlights-section', title: 'Highlights del Producto'},
-        { id: 'promotions-section', title: 'Promociones con Contador' },
+        { id: 'promotions-section', title: 'Promociones del Producto' },
         { id: 'main-benefits', title: 'Beneficios Principales' },
         { id: 'accordion-details', title: 'Acordeón de Detalles' },
         { id: 'rich-content', title: 'Contenido Enriquecido' },
@@ -383,6 +480,11 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
             </div>
         )
     }
+
+    const imageKeys: (keyof ProductFormData)[] = [
+        'image_url', 'image_url_2', 'image_url_3', 'image_url_4', 'image_url_5',
+        'image_url_6', 'image_url_7', 'image_url_8', 'image_url_9', 'image_url_10'
+    ];
 
     return (
         <div className="bg-gray-50 min-h-screen">
@@ -421,6 +523,13 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                         <div><label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre del Producto *</label><input type="text" name="name" value={formData.name} onChange={handleInputChange} required className={inputClass} /></div>
                                         <div><label htmlFor="vendor" className="block text-sm font-medium text-gray-700">Vendedor / Marca *</label><input type="text" name="vendor" value={formData.vendor} onChange={handleInputChange} required className={inputClass} /></div>
                                     </div>
+                                    <div>
+                                        <label htmlFor="slug" className="block text-sm font-medium text-gray-700">Slug del Producto (URL) *</label>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <input type="text" name="slug" value={formData.slug || ''} onChange={handleInputChange} required className={inputClass + ' mt-0'} placeholder="ejemplo-nombre-producto" />
+                                            <button type="button" onClick={() => setFormData(p => ({...p, slug: createSlug(p.name)}))} className="px-4 py-3 bg-gray-200 text-gray-700 text-sm font-semibold rounded-md hover:bg-gray-300 transition">Generar</button>
+                                        </div>
+                                    </div>
                                     <div><label htmlFor="description" className="block text-sm font-medium text-gray-700">Descripción Corta *</label><textarea name="description" value={formData.description} onChange={handleInputChange} required className={textAreaClass}></textarea></div>
                                 </fieldset>
                                 
@@ -436,16 +545,15 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                 <fieldset id="media-relations" ref={el => { sectionRefs.current['media-relations'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Imágenes, Video y Relaciones</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div><label htmlFor="image_url" className="block text-sm font-medium text-gray-700">URL Imagen Principal *</label><input type="url" name="image_url" value={formData.image_url} onChange={handleInputChange} required className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_2" className="block text-sm font-medium text-gray-700">URL Imagen 2</label><input type="url" name="image_url_2" value={formData.image_url_2 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_3" className="block text-sm font-medium text-gray-700">URL Imagen 3</label><input type="url" name="image_url_3" value={formData.image_url_3 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_4" className="block text-sm font-medium text-gray-700">URL Imagen 4</label><input type="url" name="image_url_4" value={formData.image_url_4 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_5" className="block text-sm font-medium text-gray-700">URL Imagen 5</label><input type="url" name="image_url_5" value={formData.image_url_5 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_6" className="block text-sm font-medium text-gray-700">URL Imagen 6</label><input type="url" name="image_url_6" value={formData.image_url_6 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_7" className="block text-sm font-medium text-gray-700">URL Imagen 7</label><input type="url" name="image_url_7" value={formData.image_url_7 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_8" className="block text-sm font-medium text-gray-700">URL Imagen 8</label><input type="url" name="image_url_8" value={formData.image_url_8 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_9" className="block text-sm font-medium text-gray-700">URL Imagen 9</label><input type="url" name="image_url_9" value={formData.image_url_9 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
-                                        <div><label htmlFor="image_url_10" className="block text-sm font-medium text-gray-700">URL Imagen 10</label><input type="url" name="image_url_10" value={formData.image_url_10 ?? ''} onChange={handleInputChange} className={inputClass} /></div>
+                                        {imageKeys.map((key, i) => (
+                                            <ImageUploadField
+                                                key={key}
+                                                label={`Imagen ${i + 1}${i === 0 ? ' (Principal) *' : ''}`}
+                                                value={formData[key] as string | null}
+                                                onUpload={(url) => setFormData(prev => ({ ...prev, [key]: url }))}
+                                                onClear={() => setFormData(prev => ({ ...prev, [key]: null }))}
+                                            />
+                                        ))}
                                         <div><label htmlFor="video_url" className="block text-sm font-medium text-gray-700">URL Video (YouTube)</label><input type="url" name="video_url" value={formData.video_url ?? ''} onChange={handleInputChange} className={inputClass} /></div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -456,37 +564,85 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
 
                                 <fieldset id="highlights-section" ref={el => { sectionRefs.current['highlights-section'] = el; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Highlights del Producto</legend>
-                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md"><h4 className="font-medium text-gray-800">Estadísticas (3 recuadros)</h4><div className="grid grid-cols-1 md:grid-cols-3 gap-4">{highlightsData.stats.map((stat, i) => ( <div key={i} className="p-3 border rounded bg-white space-y-2"><input type="text" placeholder="Número (ej: 90)" value={stat.value} onChange={(e) => handleHighlightChange('stats', i, 'value', e.target.value)} className={inputClass} /><input type="text" placeholder="Línea 1 (ej: gomitas)" value={stat.label} onChange={(e) => handleHighlightChange('stats', i, 'label', e.target.value)} className={inputClass} /><input type="text" placeholder="Línea 2 (ej: POR FRASCO)" value={stat.sublabel} onChange={(e) => handleHighlightChange('stats', i, 'sublabel', e.target.value)} className={inputClass} /></div>))}</div></div>
-                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md"><h4 className="font-medium text-gray-800">Puntos de Información (con icono)</h4>{highlightsData.info_points.map((point, i) => (<div key={i} className="flex items-end gap-3 p-3 border rounded bg-white"><div className="flex-grow space-y-2"><input type="text" placeholder="URL del Icono" value={point.icon_url} onChange={(e) => handleHighlightChange('info_points', i, 'icon_url', e.target.value)} className={inputClass} /><input type="text" placeholder="Título (ej: Sabor)" value={point.title} onChange={(e) => handleHighlightChange('info_points', i, 'title', e.target.value)} className={inputClass} /><input type="text" placeholder="Subtítulo (ej: Frutos del bosque)" value={point.subtitle} onChange={(e) => handleHighlightChange('info_points', i, 'subtitle', e.target.value)} className={inputClass} /></div><button type="button" onClick={() => removeHighlightItem('info_points', i)} className="text-red-500 hover:text-red-700 font-bold px-3 py-2 text-sm">X</button></div>))}<button type="button" onClick={() => addHighlightItem('info_points')} className="text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md mt-2">+ Añadir Punto</button></div>
-                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md"><h4 className="font-medium text-gray-800">Garantías (con checkbox)</h4>{highlightsData.guarantees.map((guarantee, i) => (<div key={i} className="flex items-center gap-3 p-3 border rounded bg-white"><input type="text" placeholder="Texto de la garantía" value={guarantee.text} onChange={(e) => handleHighlightChange('guarantees', i, 'text', e.target.value)} className={`${inputClass} flex-grow`} /><button type="button" onClick={() => removeHighlightItem('guarantees', i)} className="text-red-500 hover:text-red-700 font-bold px-3 py-2 text-sm">X</button></div>))}<button type="button" onClick={() => addHighlightItem('guarantees')} className="text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md mt-2">+ Añadir Garantía</button></div>
-                                </fieldset>
-                                
-                                <fieldset id="promotions-section" ref={el => { sectionRefs.current['promotions-section'] = el; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
-                                    <legend className="font-semibold text-lg px-2">Promociones con Contador</legend>
-                                    <div className="p-3 bg-gray-50 rounded-md space-y-4">
-                                        <h4 className="font-medium text-gray-800">Configuración General</h4>
-                                        <div><label htmlFor="promo_title" className="block text-sm font-medium text-gray-700">Título</label><input type="text" id="promo_title" value={promotionsData.title} onChange={(e) => handlePromotionsDataChange('title', e.target.value)} className={inputClass} /></div>
-                                        <div><label htmlFor="promo_subtitle" className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" id="promo_subtitle" value={promotionsData.subtitle} onChange={(e) => handlePromotionsDataChange('subtitle', e.target.value)} className={inputClass} /></div>
-                                        <div><label htmlFor="promo_countdown" className="block text-sm font-medium text-gray-700">Fecha de Fin del Contador</label><input type="datetime-local" id="promo_countdown" value={promotionsData.countdownEndDate} onChange={(e) => handlePromotionsDataChange('countdownEndDate', e.target.value)} className={inputClass} /></div>
-                                    </div>
-                                    <div className="p-3 bg-gray-50 rounded-md space-y-4">
-                                        <h4 className="font-medium text-gray-800">Tarjetas de Promoción (máx. 4)</h4>
-                                        {promotionsData.promotions.map((card, i) => (
-                                            <div key={card.id} className="p-3 border rounded bg-white space-y-3">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                    <div><label className="text-xs">Encabezado</label><input type="text" placeholder="Ej: Ahorra 10%" value={card.header} onChange={(e) => handlePromotionCardChange(i, 'header', e.target.value)} className={inputClass}/></div>
-                                                    <div><label className="text-xs">Título</label><input type="text" placeholder="Ej: Comprar 2 unidades" value={card.title} onChange={(e) => handlePromotionCardChange(i, 'title', e.target.value)} className={inputClass}/></div>
-                                                    <div><label className="text-xs">Precio Oferta</label><input type="number" placeholder="Ej: 89.00" value={card.price} onChange={(e) => handlePromotionCardChange(i, 'price', parseFloat(e.target.value))} className={inputClass}/></div>
-                                                    <div><label className="text-xs">Precio Original</label><input type="number" placeholder="Ej: 118.00" value={card.originalPrice ?? ''} onChange={(e) => handlePromotionCardChange(i, 'originalPrice', parseFloat(e.target.value) || null)} className={inputClass}/></div>
-                                                    <div><label className="text-xs">Tag Inferior</label><input type="text" placeholder="Ej: Para 2 meses" value={card.tag} onChange={(e) => handlePromotionCardChange(i, 'tag', e.target.value)} className={inputClass}/></div>
-                                                    <div className="flex items-end"><label className="flex items-center gap-2"><input type="checkbox" checked={card.isBestDeal} onChange={(e) => handlePromotionCardChange(i, 'isBestDeal', e.target.checked)} className="h-4 w-4 rounded text-pink-600"/><span>¿Es la mejor promoción?</span></label></div>
+                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md">
+                                        <h4 className="font-medium text-gray-800">Estadísticas (3 recuadros)</h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                            {highlightsData.stats.map((stat, i) => (
+                                                <div key={i} className="p-3 border rounded bg-white space-y-2">
+                                                    <input type="text" placeholder="Número (ej: 90)" value={stat.value} onChange={(e) => handleHighlightChange('stats', i, 'value', e.target.value)} className={inputClass} />
+                                                    <input type="text" placeholder="Línea 1 (ej: gomitas)" value={stat.label} onChange={(e) => handleHighlightChange('stats', i, 'label', e.target.value)} className={inputClass} />
+                                                    <input type="text" placeholder="Línea 2 (ej: POR FRASCO)" value={stat.sublabel} onChange={(e) => handleHighlightChange('stats', i, 'sublabel', e.target.value)} className={inputClass} />
                                                 </div>
-                                                <button type="button" onClick={() => removePromotionCard(i)} className="text-red-500 hover:text-red-700 text-xs font-bold">Eliminar Tarjeta</button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md">
+                                        <h4 className="font-medium text-gray-800">Puntos de Información (con icono)</h4>
+                                        {highlightsData.info_points.map((point, i) => (
+                                            <div key={i} className="flex items-end gap-3 p-3 border rounded bg-white">
+                                                <div className="flex-grow space-y-2">
+                                                    <ImageUploadField
+                                                        label="Icono"
+                                                        value={point.icon_url}
+                                                        onUpload={(url) => handleHighlightChange('info_points', i, 'icon_url', url)}
+                                                        onClear={() => handleHighlightChange('info_points', i, 'icon_url', '')}
+                                                    />
+                                                    <input type="text" placeholder="Título (ej: Sabor)" value={point.title} onChange={(e) => handleHighlightChange('info_points', i, 'title', e.target.value)} className={inputClass} />
+                                                    <input type="text" placeholder="Subtítulo (ej: Frutos del bosque)" value={point.subtitle} onChange={(e) => handleHighlightChange('info_points', i, 'subtitle', e.target.value)} className={inputClass} />
+                                                </div>
+                                                <button type="button" onClick={() => removeHighlightItem('info_points', i)} className="text-red-500 hover:text-red-700 font-bold px-3 py-2 text-sm">X</button>
                                             </div>
                                         ))}
-                                        {promotionsData.promotions.length < 4 && (
-                                            <button type="button" onClick={addPromotionCard} className="text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md mt-2">+ Añadir Tarjeta de Promoción</button>
-                                        )}
+                                        <button type="button" onClick={() => addHighlightItem('info_points')} className="text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md mt-2">+ Añadir Punto</button>
+                                    </div>
+                                    <div className="space-y-2 p-3 bg-gray-50 rounded-md">
+                                        <h4 className="font-medium text-gray-800">Garantías (con checkbox)</h4>
+                                        {highlightsData.guarantees.map((guarantee, i) => (
+                                            <div key={i} className="flex items-center gap-3 p-3 border rounded bg-white">
+                                                <input type="text" placeholder="Texto de la garantía" value={guarantee.text} onChange={(e) => handleHighlightChange('guarantees', i, 'text', e.target.value)} className={`${inputClass} flex-grow`} />
+                                                <button type="button" onClick={() => removeHighlightItem('guarantees', i)} className="text-red-500 hover:text-red-700 font-bold px-3 py-2 text-sm">X</button>
+                                            </div>
+                                        ))}
+                                        <button type="button" onClick={() => addHighlightItem('guarantees')} className="text-sm bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-md mt-2">+ Añadir Garantía</button>
+                                    </div>
+                                </fieldset>
+
+                                <fieldset id="promotions-section" ref={el => { sectionRefs.current['promotions-section'] = el; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
+                                    <legend className="font-semibold text-lg px-2">Promociones del Producto</legend>
+                                    <div className="space-y-2">
+                                        <div><label className="block text-sm font-medium text-gray-700">Título Principal</label><input type="text" value={promotionsData.title} onChange={(e) => setPromotionsData(p => ({ ...p, title: e.target.value }))} className={inputClass} /></div>
+                                        <div><label className="block text-sm font-medium text-gray-700">Subtítulo</label><input type="text" value={promotionsData.subtitle} onChange={(e) => setPromotionsData(p => ({ ...p, subtitle: e.target.value }))} className={inputClass} /></div>
+                                        <div><label className="block text-sm font-medium text-gray-700">Fecha Fin Countdown (ISO)</label><input type="text" value={promotionsData.countdownEndDate} onChange={(e) => setPromotionsData(p => ({ ...p, countdownEndDate: e.target.value }))} className={inputClass} /></div>
+                                    </div>
+                                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+                                        {promotionsData.promotions.map((promo, i) => (
+                                            <div key={promo.id} className={`p-4 rounded-lg space-y-3 ${promo.isBestDeal ? 'bg-orange-50 border-orange-200 border' : 'bg-gray-50 border-gray-200 border'}`}>
+                                                <h4 className="font-bold">{promo.isBestDeal ? 'Promoción Destacada' : `Promoción Normal #${i + 1}`}</h4>
+                                                {promo.pills.map((pill, p_i) => (
+                                                    <div key={p_i} className="grid grid-cols-2 gap-2">
+                                                        <input type="text" placeholder="Texto Píldora" value={pill.text} onChange={e => handlePillChange(i, p_i, 'text', e.target.value)} className={inputClass}/>
+                                                        <select value={pill.icon || ''} onChange={e => handlePillChange(i, p_i, 'icon', e.target.value)} className={inputClass}>
+                                                            <option value="">Sin Icono</option>
+                                                            <option value="check">Check</option>
+                                                            <option value="sparkles">Sparkles</option>
+                                                        </select>
+                                                    </div>
+                                                ))}
+                                                <ImageUploadField
+                                                    label="Imagen de Oferta"
+                                                    value={promo.imageUrl}
+                                                    onUpload={(url) => handlePromotionsChange(i, 'imageUrl', url)}
+                                                    onClear={() => handlePromotionsChange(i, 'imageUrl', null)}
+                                                />
+                                                <div><label className="text-xs">Precio Oferta</label><input type="number" placeholder="Precio Oferta" value={promo.price} onChange={e => handlePromotionsChange(i, 'price', Number(e.target.value))} className={inputClass}/></div>
+                                                <div><label className="text-xs">Precio Original</label><input type="number" placeholder="Precio Original" value={promo.originalPrice ?? ''} onChange={e => handlePromotionsChange(i, 'originalPrice', Number(e.target.value))} className={inputClass}/></div>
+                                                <div><label className="text-xs">Título</label><input type="text" placeholder="Título" value={promo.title} onChange={e => handlePromotionsChange(i, 'title', e.target.value)} className={inputClass}/></div>
+                                                <div><label className="text-xs">Subtítulo</label><input type="text" placeholder="Subtítulo" value={promo.subtitle ?? ''} onChange={e => handlePromotionsChange(i, 'subtitle', e.target.value)} className={inputClass}/></div>
+                                                <div><label className="text-xs">Texto Precio/Unidad</label><input type="text" placeholder="Texto Precio/Unidad" value={promo.pricePerUnitText ?? ''} onChange={e => handlePromotionsChange(i, 'pricePerUnitText', e.target.value)} className={inputClass}/></div>
+                                                <div><label className="text-xs">Texto Botón</label><input type="text" placeholder="Texto Botón" value={promo.buttonText} onChange={e => handlePromotionsChange(i, 'buttonText', e.target.value)} className={inputClass}/></div>
+                                                <div><label className="text-xs">Texto Footer</label><input type="text" placeholder="Texto Footer" value={promo.footerText ?? ''} onChange={e => handlePromotionsChange(i, 'footerText', e.target.value)} className={inputClass}/></div>
+                                            </div>
+                                        ))}
                                     </div>
                                 </fieldset>
 
@@ -545,10 +701,10 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                         <span className="text-sm font-medium text-gray-700">Producto Activo</span>
                                     </label>
                                     <div className="flex items-center gap-3">
-                                        {isEditMode && (
+                                        {isEditMode && formData.slug && (
                                             <button 
                                                 type="button" 
-                                                onClick={() => props.onViewProduct(productIdToEdit!, formData.name)}
+                                                onClick={() => props.onViewProduct(formData.slug!)}
                                                 className="inline-flex justify-center py-3 px-6 border border-gray-300 shadow-sm text-base font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                                             >
                                                 Ver Producto

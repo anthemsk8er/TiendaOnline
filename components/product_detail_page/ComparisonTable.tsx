@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { CheckCircleIcon, XMarkIcon } from './Icons';
 // FIX: Changed import path to be relative to the root `types.ts`
@@ -23,11 +21,11 @@ const ComparisonTable: React.FC<ComparisonTableProps> = ({ comparisonData, produ
         <div className="max-w-4xl mx-auto">
           {title && (
             <div className="text-center mb-10">
-              <h2 className="text-3xl lg:text-4xl font-black text-[#1a2b63] tracking-tight uppercase animate-fade-in-up">
+              <h2 className="text-2xl sm:text-3xl font-black text-[#1a2b63] tracking-tight uppercase animate-fade-in-up">
                 {title}
               </h2>
               {subtitle && (
-                <p className="mt-4 max-w-3xl mx-auto text-center text-gray-600 animate-fade-in-up delay-100">
+                <p className="mt-4 max-w-3xl mx-auto text-center text-sm sm:text-base text-gray-600 animate-fade-in-up delay-100">
                   {subtitle}
                 </p>
               )}

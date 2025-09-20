@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { XMarkIcon, UserIcon, ChatIcon, MapPinIcon, AtSymbolIcon, ShoppingBagIcon, WalletIcon, ChevronDownIcon } from '../product_detail_page/Icons';
-import type { CartItem, DiscountCode, Order } from '../../types';
+import { XMarkIcon, UserIcon, ChatIcon, AtSymbolIcon, ShoppingBagIcon, WalletIcon } from '../product_detail_page/Icons';
+import type { CartItem, DiscountCode, Order, PromotionsData, PromotionCard } from '../../types';
 import { supabase } from '../../lib/supabaseClient';
 import type { PostgrestSingleResponse } from '@supabase/supabase-js';
 import type { Database, Json } from '../../lib/database.types';
+import ProductPromotions from '../product_detail_page/ProductPromotions';
 
 interface CheckoutPopupProps {
   isOpen: boolean;
@@ -14,7 +15,7 @@ interface CheckoutPopupProps {
 
 const upsellProduct = {
     title: 'Agrega Gomitas de Colágeno + Biotina (Frasco de 90 Gomitas)',
-    price: 49.00,
+    price: 39.90,
     image: 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/products/colageno.jpg'
 };
 
@@ -37,8 +38,61 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
   const [discountError, setDiscountError] = useState<string | null>(null);
   const [isVerifyingCode, setIsVerifyingCode] = useState(false);
 
-  const [offers, setOffers] = useState<any[]>([]);
+  const [promotionsData, setPromotionsData] = useState<PromotionsData | null>(null);
+  const [loadingPromotions, setLoadingPromotions] = useState(false);
   const singleProduct = items.length === 1 ? items[0] : null;
+
+  const getDeliveryDateRange = () => {
+    const today = new Date();
+    const locale = 'es-ES';
+    
+    const startDate = new Date(today);
+    startDate.setDate(today.getDate() + 1);
+
+    const endDate = new Date(today);
+    endDate.setDate(today.getDate() + 3);
+
+    const startDay = startDate.getDate();
+    const endDay = endDate.getDate();
+    const startMonth = startDate.toLocaleString(locale, { month: 'long' });
+    const endMonth = endDate.toLocaleString(locale, { month: 'long' });
+
+    if (startMonth === endMonth) {
+        return `entre el <strong>${startDay} y ${endDay} de ${startMonth}</strong>`;
+    } else {
+        return `entre el <strong>${startDay} de ${startMonth} y el ${endDay} de ${endMonth}</strong>`;
+    }
+  };
+
+  useEffect(() => {
+    const fetchPromotions = async () => {
+        if (isOpen && singleProduct && supabase) {
+            setLoadingPromotions(true);
+            const { data, error } = await supabase
+                .from('products')
+                .select('promotions_data')
+                .eq('id', singleProduct.id)
+                .single();
+
+            if (data?.promotions_data) {
+                // FIX: Cast to unknown first to satisfy TypeScript when converting from Json type.
+                setPromotionsData(data.promotions_data as unknown as PromotionsData);
+            } else {
+                setPromotionsData(null);
+            }
+            setLoadingPromotions(false);
+        } else {
+            setPromotionsData(null);
+        }
+    };
+
+    if (isOpen) {
+        fetchPromotions();
+    } else {
+        // Reset when popup closes
+        setPromotionsData(null);
+    }
+  }, [isOpen, singleProduct?.id]);
 
   useEffect(() => {
     setAppliedDiscountCode(null);
@@ -46,38 +100,28 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
     setDiscountError(null);
     setFormData(prev => ({...prev, discountCode: ''}));
   }, [items, isOpen]);
-
-  useEffect(() => {
-      if (isOpen && items.length === 1) {
-          const product = items[0];
-          if (offers.length === 0 || !offers.some(o => o.productId === product.id)) {
-              const baseNonDiscountedPrice = product.originalPrice || product.price;
-              const currentSinglePrice = product.price;
-              const generatedOffers = [
-                { id: 1, productId: product.id, title: 'Compra 1 unidad', discount: 'Ahorra 0%', quantity: 1, unitPrice: currentSinglePrice, price: currentSinglePrice, originalPrice: baseNonDiscountedPrice > currentSinglePrice ? baseNonDiscountedPrice : null, image: product.image },
-                { id: 2, productId: product.id, title: '¡Compra 2 unidades con un 10% de descuento!', discount: 'Ahorra 10%', quantity: 2, unitPrice: baseNonDiscountedPrice * 0.90, price: baseNonDiscountedPrice * 2 * 0.90, originalPrice: baseNonDiscountedPrice * 2, image: product.image },
-                { id: 3, productId: product.id, title: '¡Compra 3 unidades con un 15% de descuento!', discount: 'Ahorra 15%', quantity: 3, unitPrice: baseNonDiscountedPrice * 0.85, price: baseNonDiscountedPrice * 3 * 0.85, originalPrice: baseNonDiscountedPrice * 3, image: product.image },
-              ];
-              setOffers(generatedOffers);
-          }
-      } else {
-          setOffers([]);
-      }
-  }, [isOpen, items]);
-
-  const selectedOffer = useMemo(() => {
-    if (!singleProduct || !offers.length) return null;
-    return offers.find(o => 
-      o.quantity === singleProduct.quantity && 
-      Math.abs(o.unitPrice - singleProduct.price) < 0.01
-    );
-  }, [singleProduct, offers]);
-
-  const handleSelectOffer = (offer: typeof offers[0]) => {
-      if (singleProduct) {
-        onUpdateCartQuantity(singleProduct.id, offer.quantity, offer.unitPrice);
-      }
+  
+  const handleSelectPromotion = (promotion: PromotionCard) => {
+    if (singleProduct) {
+        const quantityMatch = promotion.title.match(/\d+/);
+        const quantity = quantityMatch ? parseInt(quantityMatch[0], 10) : 1;
+        if (quantity > 0) {
+            const newUnitPrice = promotion.price / quantity;
+            onUpdateCartQuantity(singleProduct.id, quantity, newUnitPrice);
+        }
+    }
   };
+  
+  const selectedPromotion = useMemo(() => {
+    if (!singleProduct || !promotionsData?.promotions) return null;
+    return promotionsData.promotions.find(p => {
+        const promoQuantityMatch = p.title.match(/\d+/);
+        const promoQuantity = promoQuantityMatch ? parseInt(promoQuantityMatch[0], 10) : 1;
+        if (promoQuantity === 0) return false;
+        const promoUnitPrice = p.price / promoQuantity;
+        return promoQuantity === singleProduct.quantity && Math.abs(promoUnitPrice - singleProduct.price) < 0.01;
+    });
+  }, [singleProduct, promotionsData]);
   
   const cartSubtotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
   const total = cartSubtotal - discountAmount + (isUpsellChecked ? upsellProduct.price : 0);
@@ -271,8 +315,8 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
         className={`bg-white h-full w-full max-w-2xl shadow-2xl flex flex-col transform transition-transform duration-300 ease-in-out absolute right-0 top-0 bottom-0 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`}
         onClick={e => e.stopPropagation()}
       >
-        <header className="p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
-          <h2 id="checkout-heading" className="text-xl font-bold text-[#1a2b63]">RESUMEN DEL PEDIDO</h2>
+        <header className="px-4 py-3 sm:p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+          <h2 id="checkout-heading" className="text-lg sm:text-xl font-bold text-[#1a2b63]">RESUMEN DEL PEDIDO</h2>
           <button onClick={onClose} className="p-1 rounded-full hover:bg-gray-100">
             <XMarkIcon className="w-6 h-6 text-gray-600" />
           </button>
@@ -280,63 +324,65 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
 
         <main className="flex-grow overflow-y-auto">
             <div className="p-4 sm:p-6 space-y-6">
+                <div className="text-center">
+                  <h2 className="text-2xl font-bold text-[#1a2b63]">
+                    Completa para finalizar tu compra
+                  </h2>
+                  <p
+                    className="mt-1.5 text-sm text-gray-600"
+                    dangerouslySetInnerHTML={{ __html: `Pídelo hoy y recíbelo ${getDeliveryDateRange()}` }}
+                  />
+                </div>
 
-                <h2 className="text-xl font-bold text-center text-[#1a2b63] pt-4">Completa para finalizar tu compra</h2>
                 <form className="space-y-4" noValidate>
                   {formFields.map(field => (
                       <div key={field.name}>
-                        <label className="font-semibold text-sm mb-1 block text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
+                        <label className="font-semibold text-xs sm:text-sm mb-1 block text-gray-700">{field.label} {field.required && <span className="text-red-500">*</span>}</label>
                         <div className="relative">
                             <span className="absolute inset-y-0 left-0 flex items-center pl-3">{field.icon}</span>
                             <input type={field.type} name={field.name} value={formData[field.name as keyof typeof formData]} onChange={handleInputChange} placeholder={field.placeholder} required={field.required} aria-invalid={!!errors[field.name]}
-                              className={`w-full pl-10 pr-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none transition-colors ${errors[field.name] ? 'border-red-500' : 'border-gray-300'}`} />
+                              className={`w-full text-sm pl-9 pr-4 py-2.5 bg-slate-100 text-gray-900 placeholder-gray-500 border rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none transition-colors ${errors[field.name] ? 'border-red-500' : 'border-gray-300'}`} />
                         </div>
                         {errors[field.name] && <p className="text-red-500 text-xs mt-1">{errors[field.name]}</p>}
                       </div>
                   ))}
                 </form>
 
-                <h2 className="text-xl font-bold text-center text-[#1a2b63] pt-4">Elige tu oferta</h2>
-                {singleProduct ? (
-                     <div className="space-y-2">
-                        {offers.map(offer => (
-                        <label key={offer.id} className={`p-4 border rounded-lg flex items-center gap-2 cursor-pointer transition-all ${selectedOffer?.id === offer.id ? 'border-2 border-[#16a085] bg-[#16a085]/10' : 'border-gray-200 hover:border-gray-400'}`}>
-                            <input type="radio" name="offer" value={offer.id} checked={selectedOffer?.id === offer.id} onChange={() => handleSelectOffer(offer)} className="w-5 h-5 accent-[#16a085]"/>
-                            <img src={offer.image} alt="Product" className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
-                            <div className="flex-grow">
-                              <p className="font-medium text-sm text-[#1a2b63] mb-1">{offer.title}</p>
-                              <span className="text-xs font-bold text-white bg-[#16a085] px-2 py-0.5  rounded-full">{offer.discount}</span>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                              {offer.originalPrice && <p className="text-sm text-gray-400 line-through whitespace-nowrap">S/ {offer.originalPrice.toFixed(2)}</p>}
-                              <p className="font-bold text-lg text-[#1a2b63] whitespace-nowrap">S/ {offer.price.toFixed(2)}</p>
-                            </div>
-                        </label>
-                        ))}
-                    </div>
-                ) : (
-                    <div className="space-y-3">
+                 {promotionsData && promotionsData.promotions.length > 0 ? (
+                    <>
+                        <h2 className="text-lg sm:text-xl font-bold text-center text-[#1a2b63] pt-4">
+                            {promotionsData.title || 'Elige tu oferta'}
+                        </h2>
+                        <ProductPromotions
+                            data={promotionsData}
+                            onSelectPromotion={handleSelectPromotion}
+                            selectedPromotionId={selectedPromotion?.id}
+                        />
+                    </>
+                ) : !singleProduct && items.length > 0 ? (
+                    <div className="space-y-3 pt-4">
+                        <h2 className="text-lg sm:text-xl font-bold text-center text-[#1a2b63]">Tu Pedido</h2>
                         {items.map(item => (
-                            <div key={item.id} className="p-4 border rounded-lg flex items-center gap-4 bg-gray-50">
-                                <img src={item.image} alt={item.title} className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
+                            <div key={item.id} className="p-3 border rounded-lg flex items-center gap-3 bg-gray-50">
+                                <img src={item.image} alt={item.title} className="w-14 h-14 rounded-md object-cover" width="56" height="56" />
                                 <div className="flex-grow">
-                                    <p className="font-semibold text-[#1a2b63]">{item.title}</p>
-                                    <p className="text-sm text-gray-500">{item.quantity} x S/ {item.price.toFixed(2)}</p>
+                                    <p className="font-semibold text-sm text-[#1a2b63]">{item.title}</p>
+                                    <p className="text-xs text-gray-500">{item.quantity} x S/ {item.price.toFixed(2)}</p>
                                 </div>
-                                <p className="font-bold text-lg text-[#1a2b63]">S/ {(item.price * item.quantity).toFixed(2)}</p>
+                                <p className="font-bold text-base sm:text-lg text-[#1a2b63]">S/ {(item.price * item.quantity).toFixed(2)}</p>
                             </div>
                         ))}
                     </div>
-                )}
+                ): null}
                
-                <label className={`p-4 border-2 rounded-lg flex items-center gap-4 cursor-pointer transition-all ${isUpsellChecked ? 'border-[#16a085] bg-[#16a085]/10' : 'border-dashed border-gray-300 hover:border-gray-400'}`}>
+                <label className={`p-3 sm:p-4 border-2 rounded-lg flex items-center gap-4 cursor-pointer transition-all ${isUpsellChecked ? 'border-[#16a085] bg-[#16a085]/10' : 'border-dashed border-gray-300 hover:border-gray-400'}`}>
                     <input type="checkbox" checked={isUpsellChecked} onChange={() => setIsUpsellChecked(!isUpsellChecked)} className="w-5 h-5 rounded accent-[#16a085]"/>
                     <div className="flex-grow">
-                        <p className="font-semibold text-[#1a2b63]">
+                        <p className="font-semibold text-sm text-[#1a2b63]">
                             {upsellProduct.title} <strong className="text-[#16a085]">S/ {upsellProduct.price.toFixed(2)}</strong>
                         </p>
                     </div>
-                    <img src={upsellProduct.image} alt="Upsell Product" className="w-16 h-16 rounded-md object-cover" width="64" height="64" />
+                    <img src={upsellProduct.image} alt="Upsell Product" className="w-14 h-14 sm:w-16 sm:h-16 rounded-md object-cover" width="64" height="64" />
                 </label>
 
 
@@ -344,21 +390,18 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
             
             <div className="bg-white" ref={formRef}>
               <div className="p-4 sm:p-6 space-y-4">
-                
-
-
-                <div className="space-y-2 py-4 border-t border-b">
+                <div className="space-y-2 py-4 border-t border-b text-sm">
                     <div className="flex justify-between items-center text-gray-600"><span>Subtotal</span><span>S/ {cartSubtotal.toFixed(2)}</span></div>
                      {isUpsellChecked && <div className="flex justify-between items-center text-gray-600"><span>Gomitas de Colágeno + Biotina</span><span>S/ {upsellProduct.price.toFixed(2)}</span></div>}
                      {discountAmount > 0 && <div className="flex justify-between items-center text-green-600 font-semibold"><span>Descuento ({appliedDiscountCode?.code})</span><span>-S/ {discountAmount.toFixed(2)}</span></div>}
                     <div className="flex justify-between items-center text-gray-600"><span>Envío</span><span className="font-semibold text-green-600">Gratis</span></div>
-                    <div className="flex justify-between items-center font-bold text-lg"><span>Total</span><span>S/ {total.toFixed(2)}</span></div>
+                    <div className="flex justify-between items-center font-bold text-base sm:text-lg"><span>Total</span><span>S/ {total.toFixed(2)}</span></div>
                 </div>
 
                 <div className="space-y-2">
                     <div className="flex gap-2">
-                        <input type="text" name="discountCode" value={formData.discountCode} onChange={handleInputChange} placeholder="Código de descuento" className="flex-grow px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none" disabled={!!appliedDiscountCode} />
-                        <button onClick={handleApplyDiscount} disabled={isVerifyingCode || !!appliedDiscountCode} className="bg-gray-800 text-white font-bold px-6 py-2 rounded-md hover:bg-black transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed">
+                        <input type="text" name="discountCode" value={formData.discountCode} onChange={handleInputChange} placeholder="Código de descuento" className="flex-grow text-sm px-4 py-2.5 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#16a085] focus:border-[#16a085] outline-none" disabled={!!appliedDiscountCode} />
+                        <button onClick={handleApplyDiscount} disabled={isVerifyingCode || !!appliedDiscountCode} className="bg-gray-800 text-white font-bold px-4 sm:px-6 py-2 rounded-md hover:bg-black transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm">
                             {isVerifyingCode ? '...' : appliedDiscountCode ? 'Aplicado' : 'Aplicar'}
                         </button>
                     </div>
@@ -366,17 +409,18 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
                 </div>
               </div>
             </div>
-            
+
+  
             <footer className="p-4 bg-gray-50 border-t border-gray-200  z-10 space-y-3">
                 <button onClick={(e) => handleFinalizePurchase(e, 'Pago en Casa')} disabled={!isFormValid}
-                    className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-[#16a085]/70 disabled:cursor-not-allowed">
-                    <ShoppingBagIcon className="w-6 h-6"/>
-                    FINALIZAR COMPRA Y PAGAR EN CASA - S/ {total.toFixed(2)}
+                    className="w-full bg-[#16a085] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#117a65] transition-colors flex items-center justify-center gap-2 text-sm shadow-lg disabled:bg-[#16a085]/70 disabled:cursor-not-allowed">
+                    <ShoppingBagIcon className="w-5 h-5"/>
+                    <span>FINALIZAR Y PAGAR EN CASA - S/ {total.toFixed(2)}</span>
                 </button>
                   <button onClick={(e) => handleFinalizePurchase(e, 'Tarjeta, Yape o Plin')} disabled={!isFormValid}
-                    className="w-full bg-[#2952a3] text-white font-bold py-4 px-6 rounded-lg hover:bg-[#1f3e7a] transition-colors flex items-center justify-center gap-3 text-lg shadow-lg disabled:bg-[#2952a3]/70 disabled:cursor-not-allowed">
-                    <WalletIcon className="w-6 h-6"/>
-                    Pagar con Tarjeta, Yape o Plin - S/ {total.toFixed(2)}
+                    className="w-full bg-[#2952a3] text-white font-bold py-3 px-4 rounded-lg hover:bg-[#1f3e7a] transition-colors flex items-center justify-center gap-2 text-sm shadow-lg disabled:bg-[#2952a3]/70 disabled:cursor-not-allowed">
+                    <WalletIcon className="w-5 h-5"/>
+                     <span>PAGAR CON TARJETA/YAPE - S/ {total.toFixed(2)}</span>
                 </button>
             </footer>
         </main>

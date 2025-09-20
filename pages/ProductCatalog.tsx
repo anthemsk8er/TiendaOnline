@@ -13,7 +13,7 @@ import WhatsAppButton from '../components/shared/WhatsAppButton';
 const bannerImage = 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/product-catalog/productCatalogHeroImage.jpg';
 
 interface ProductCatalogProps {
-  onProductClick: (productId: string, productName: string) => void;
+  onProductClick: (slug: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;

@@ -9,6 +9,7 @@ export type SupabaseProduct = Database['public']['Tables']['products']['Row'] & 
 
 export type Product = {
   id: string;
+  slug: string | null;
   vendor: string;
   title: string;
   price: number;
@@ -156,15 +157,24 @@ export interface ProductHighlightsData {
   guarantees: ProductHighlightGuarantee[];
 }
 
-// NEW: Types for the Product Promotions section
+// NEW: Types for the Product Promotions section to support the new design.
+export interface PromotionPill {
+  text: string;
+  icon?: 'check' | 'sparkles' | null;
+}
+
 export interface PromotionCard {
   id: number;
-  header: string;
-  title: string;
+  isBestDeal: boolean;
+  pills: PromotionPill[];
+  imageUrl: string | null;
   price: number;
   originalPrice: number | null;
-  tag: string;
-  isBestDeal: boolean;
+  title: string;
+  subtitle: string | null;
+  pricePerUnitText: string | null;
+  buttonText: string;
+  footerText: string | null;
 }
 
 export interface PromotionsData {

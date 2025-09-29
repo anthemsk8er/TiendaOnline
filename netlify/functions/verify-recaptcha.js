@@ -1,66 +1,79 @@
-exports.handler = async (event, context) => {
-  // Solo permitir POST
+// Using require for node-fetch as Netlify functions run in a Node.js environment
+// where fetch might not be globally available by default in all versions.
+// A FormData-like approach is more standard for this API.
+const fetch = require('node-fetch');
+
+exports.handler = async (event) => {
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      body: JSON.stringify({ message: 'Método no permitido' })
+      body: JSON.stringify({ success: false, message: 'Method Not Allowed' }),
+    };
+  }
+
+  const SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+
+  // Explicitly check if the secret key is configured. This is a common deployment error.
+  if (!SECRET_KEY) {
+    console.error('reCAPTCHA secret key is not set in environment variables.');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ success: false, message: 'Server configuration error: reCAPTCHA secret key is missing.' })
     };
   }
 
   try {
     const { recaptchaToken } = JSON.parse(event.body);
 
-    // Validar que el token existe
     if (!recaptchaToken) {
       return {
         statusCode: 400,
-        body: JSON.stringify({
-          success: false,
-          message: 'Token de reCAPTCHA no proporcionado'
-        })
+        body: JSON.stringify({ success: false, message: 'reCAPTCHA token was not provided.' }),
       };
     }
 
-    // Verificar con Google reCAPTCHA
-    const SECRET_KEY = process.env.RECAPTCHA_SECRET_KEY;
+    const verificationURL = `https://www.google.com/recaptcha/api/siteverify`;
     
-    const response = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+    // The body needs to be in application/x-www-form-urlencoded format
+    const body = new URLSearchParams({
+      secret: SECRET_KEY,
+      response: recaptchaToken,
+    });
+
+    const response = await fetch(verificationURL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
-      body: `secret=${SECRET_KEY}&response=${recaptchaToken}`
+      body: body,
     });
 
     const data = await response.json();
 
     if (data.success) {
-      // reCAPTCHA verificado exitosamente
+      // reCAPTCHA verification was successful
       return {
         statusCode: 200,
-        body: JSON.stringify({
-          success: true,
-          message: 'Verificación exitosa'
-        })
+        body: JSON.stringify({ success: true, message: 'Verification successful' }),
       };
     } else {
-      console.error('Error en reCAPTCHA:', data['error-codes']);
+      // Log Google's specific error codes for easier debugging
+      console.error('reCAPTCHA verification failed with error codes:', data['error-codes']);
       return {
         statusCode: 400,
         body: JSON.stringify({
           success: false,
-          message: 'Verificación de reCAPTCHA fallida'
-        })
+          message: 'Verificación de reCAPTCHA fallida', // Keep the user-facing message consistent
+          'error-codes': data['error-codes'], // Provide details for debugging
+        }),
       };
     }
   } catch (error) {
-    console.error('Error:', error);
+    console.error('An internal server error occurred:', error);
     return {
       statusCode: 500,
       body: JSON.stringify({
         success: false,
-        message: 'Error del servidor'
-      })
+        message: 'Internal server error during verification process.',
+      }),
     };
   }
 };

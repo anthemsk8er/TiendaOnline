@@ -11,7 +11,7 @@ interface ProductPromotionsProps {
 const Pill: React.FC<{ pill: PromotionPill, isBestDeal: boolean }> = ({ pill, isBestDeal }) => {
     // FIX: Added whitespace-nowrap to prevent text wrapping.
     const baseClasses = "text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1 whitespace-nowrap";
-    const colorClass = "bg-[#2952a3]";
+    const colorClass = isBestDeal ? "bg-orange-500" : "bg-[#2952a3]";
     
     const Icon = () => {
         if (pill.icon === 'check') return <CheckBadgeIcon className="w-3.5 h-3.5" />;

@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabaseClient';
 import { XMarkIcon } from '../product_detail_page/Icons';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface AuthModalProps {
   view: 'login' | 'register';
@@ -16,20 +16,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  const SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
-
-  const handleCaptchaChange = (token: string | null) => {
-      setCaptchaToken(token);
-      if (token) setError(null);
-  };
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleAuthAction = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!captchaToken) {
-        setError('Por favor, completa el reCAPTCHA.');
+    if (!executeRecaptcha) {
+        setError('reCAPTCHA no está listo. Intenta de nuevo.');
         return;
     }
 
@@ -38,11 +30,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
     setMessage(null);
 
     try {
-        // Step 1: Verify reCAPTCHA token
+        const recaptchaToken = await executeRecaptcha('authAction');
+
+        // Step 1: Verify reCAPTCHA token with our Netlify function
         const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recaptchaToken: captchaToken }),
+            body: JSON.stringify({ recaptchaToken }),
         });
         const recaptchaData = await recaptchaResponse.json();
 
@@ -50,7 +44,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
             throw new Error(recaptchaData.message || 'La verificación de reCAPTCHA falló.');
         }
 
-        // Step 2: Proceed with Supabase Auth
+        // Step 2: Proceed with Supabase Auth if reCAPTCHA is valid
         if (currentView === 'login') {
             const { error } = await supabase.auth.signInWithPassword({ email, password });
             if (error) throw error;
@@ -64,12 +58,13 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
                 },
             });
             if (error) throw error;
-            onClose();
+            setMessage('¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.');
+            setTimeout(() => {
+              onClose();
+            }, 3000)
         }
     } catch (err: any) {
         setError(err.message);
-        recaptchaRef.current?.reset();
-        setCaptchaToken(null);
     } finally {
         setLoading(false);
     }
@@ -120,16 +115,12 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
             <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className={inputClass} />
           </div>
           
-          <div className="transform scale-75 -translate-x-8">
-             <ReCAPTCHA ref={recaptchaRef} sitekey={SITE_KEY} onChange={handleCaptchaChange} />
-          </div>
-
           {error && <p className="text-red-500 text-sm text-center">{error}</p>}
           {message && <p className="text-green-600 text-sm text-center">{message}</p>}
 
           <button
             type="submit"
-            disabled={loading || !captchaToken}
+            disabled={loading || !executeRecaptcha}
             className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50"
           >
             {loading ? 'Cargando...' : (currentView === 'login' ? 'Ingresar' : 'Registrarse')}
@@ -144,7 +135,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
                 {currentView === 'login' ? '¿No tienes una cuenta? Regístrate' : '¿Ya tienes una cuenta? Ingresa'}
             </button>
         </div>
-  
+        <p className="text-xs text-gray-400 text-center mt-4">
+            Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.
+        </p>
       </div>
     </div>
   );

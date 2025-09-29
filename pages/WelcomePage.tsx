@@ -5,7 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { supabase } from '../lib/supabaseClient';
 import { UserIcon, ChatIcon, GiftIcon } from '../components/product_detail_page/Icons';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const welcomeHeroImage = 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/promo_energia_natural.jpg';
 
@@ -38,15 +38,7 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
-    const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-    const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-    const SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
-
-    const handleCaptchaChange = (token: string | null) => {
-        setCaptchaToken(token);
-        if (token) setError(null);
-    };
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,19 +50,21 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
             setError('Por favor, ingresa un número de celular válido de 9 dígitos.');
             return;
         }
-        if (!captchaToken) {
-            setError('Por favor, completa el reCAPTCHA para continuar.');
+        if (!executeRecaptcha) {
+            setError('reCAPTCHA no está listo, por favor espera un momento.');
             return;
         }
         setError(null);
         setLoading(true);
 
         try {
+            const recaptchaToken = await executeRecaptcha('welcomeForm');
+            
             // Step 1: Verify reCAPTCHA token
             const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recaptchaToken: captchaToken }),
+                body: JSON.stringify({ recaptchaToken }),
             });
             const recaptchaData = await recaptchaResponse.json();
 
@@ -102,8 +96,6 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
             setIsSuccess(true);
         } catch (err: any) {
             setError(err.message);
-            recaptchaRef.current?.reset();
-            setCaptchaToken(null);
         } finally {
             setLoading(false);
         }
@@ -165,15 +157,11 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                                         <p className="text-xs text-gray-500 mt-1">De preferencia, el que usaste para contactarnos.</p>
                                     </div>
                                     
-                                    <div className="transform scale-75 -translate-x-8">
-                                       <ReCAPTCHA ref={recaptchaRef} sitekey={SITE_KEY} onChange={handleCaptchaChange} />
-                                    </div>
-
                                     {error && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{error}</p>}
                                     
                                     <button
                                         type="submit"
-                                        disabled={loading || !captchaToken}
+                                        disabled={loading || !executeRecaptcha}
                                         className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         {loading ? (
@@ -182,6 +170,9 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                                             '¡Quiero mis Regalos!'
                                         )}
                                     </button>
+                                     <p className="text-xs text-gray-400 text-center">
+                                        Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.
+                                    </p>
                                 </form>
                             </>
                         )}

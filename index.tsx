@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
 // FIX: Corrected import path
@@ -28,6 +29,9 @@ interface ViewState {
     productSlug: string | null;
     categoryFilter: string | null;
 }
+
+// IMPORTANT: Replace with your actual reCAPTCHA v3 Site Key
+const RECAPTCHA_V3_SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
 
 const App = () => {
     const [currentView, setCurrentView] = useState<ViewState>({
@@ -509,7 +513,9 @@ if (rootElement) {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
         <React.StrictMode>
-            <App />
+            <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_V3_SITE_KEY}>
+                <App />
+            </GoogleReCaptchaProvider>
         </React.StrictMode>
     );
 }

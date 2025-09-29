@@ -8,7 +8,7 @@ import { AtSymbolIcon, MapPinIcon, ChatIcon, ChevronDownIcon, ChevronUpIcon } fr
 import CheckoutPopup from '../components/cart_delivery/CheckoutPopup';
 import Cart from '../components/cart_delivery/Cart';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
-import ReCAPTCHA from 'react-google-recaptcha';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface ContactFaqPageProps {
   onProductClick: (slug: string) => void;
@@ -84,40 +84,33 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   
   const [formData, setFormData] = useState({ name: '', email: '', message: '' });
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState(false);
-  const recaptchaRef = useRef<ReCAPTCHA>(null);
-
-  const SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
+  const { executeRecaptcha } = useGoogleReCaptcha();
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
       setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleCaptchaChange = (token: string | null) => {
-      setCaptchaToken(token);
-      if (token) setFormError('');
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
       e.preventDefault();
-      if (!captchaToken) {
-          setFormError('Por favor, completa el reCAPTCHA para continuar.');
+      if (!executeRecaptcha) {
+          setFormError('reCAPTCHA no está listo, por favor espera un momento.');
           return;
       }
-
       setLoading(true);
       setFormError('');
       setFormSuccess(false);
 
       try {
+          const recaptchaToken = await executeRecaptcha('contactForm');
+
           const response = await fetch('/.netlify/functions/verify-recaptcha', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                  recaptchaToken: captchaToken,
+                  recaptchaToken: recaptchaToken,
                   nombre: formData.name,
                   email: formData.email,
                   mensaje: formData.message,
@@ -128,10 +121,9 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
 
           if (response.ok && data.success) {
               setFormSuccess(true);
+              setFormData({ name: '', email: '', message: '' }); // Clear form
           } else {
               setFormError(data.message || 'Error al verificar. Inténtalo de nuevo.');
-              recaptchaRef.current?.reset();
-              setCaptchaToken(null);
           }
       } catch (err) {
           setFormError('Error de red. Por favor, revisa tu conexión.');
@@ -229,15 +221,16 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
                         <textarea id="message" name="message" rows={4} value={formData.message} onChange={handleFormChange} required className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="Escribe tu consulta aquí..."></textarea>
                       </div>
                     </div>
-                    <div className="transform scale-75 -translate-x-8">
-                       <ReCAPTCHA ref={recaptchaRef} sitekey={SITE_KEY} onChange={handleCaptchaChange} />
-                    </div>
+                    
                     {formError && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{formError}</p>}
                     <div>
-                      <button type="submit" disabled={loading || !captchaToken} className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center gap-2 text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button type="submit" disabled={loading || !executeRecaptcha} className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center gap-2 text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
                         {loading ? 'Enviando...' : 'Enviar Mensaje'}
                       </button>
                     </div>
+                     <p className="text-xs text-gray-400 text-center">
+                        Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.
+                    </p>
                   </form>
                 </>
               )}

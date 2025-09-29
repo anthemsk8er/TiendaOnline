@@ -1,7 +1,5 @@
-// Using require for node-fetch as Netlify functions run in a Node.js environment
-// where fetch might not be globally available by default in all versions.
+// Relies on the global `fetch` provided by modern Node.js runtimes on Netlify.
 // A FormData-like approach is more standard for this API.
-const fetch = require('node-fetch');
 
 exports.handler = async (event) => {
   // Only allow POST requests
@@ -24,6 +22,7 @@ exports.handler = async (event) => {
   }
 
   try {
+    // The body might contain other form data besides the token, so we destructure robustly.
     const { recaptchaToken } = JSON.parse(event.body);
 
     if (!recaptchaToken) {

@@ -24,6 +24,7 @@ interface LegalPageProps {
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
   onAdminOrdersClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
 }
 
 const LegalPage: React.FC<LegalPageProps> = (props) => {

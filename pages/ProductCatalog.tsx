@@ -24,6 +24,7 @@ interface ProductCatalogProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   category?: string;
   cartItems: CartItem[];
   onAddToCart: (product: Product, quantity: number) => void;

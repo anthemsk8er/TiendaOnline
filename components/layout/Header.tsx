@@ -18,6 +18,7 @@ interface HeaderProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItemCount: number;
   session: Session | null;
   profile: Profile | null;
@@ -36,6 +37,7 @@ const Header: React.FC<HeaderProps> = ({
   onAdminOrdersClick,
   onAdminDiscountManagementClick,
   onAdminReviewManagementClick,
+  onAdminWelcomePageClick,
   cartItemCount,
   session,
   profile,
@@ -69,6 +71,7 @@ const Header: React.FC<HeaderProps> = ({
     { label: 'Gestión de Productos', handler: createNavHandler(onAdminProductManagementClick), condition: isAdmin && !!onAdminProductManagementClick },
     { label: 'Gestión de Descuentos', handler: createNavHandler(onAdminDiscountManagementClick), condition: isAdmin && !!onAdminDiscountManagementClick },
     { label: 'Gestión de Comentarios', handler: createNavHandler(onAdminReviewManagementClick), condition: isAdmin && !!onAdminReviewManagementClick },
+    { label: 'Página Bienvenida', handler: createNavHandler(onAdminWelcomePageClick), condition: isAdmin && !!onAdminWelcomePageClick },
     { label: 'Subir Producto', handler: createNavHandler(onAdminProductUploadClick), condition: isAdmin && !!onAdminProductUploadClick },
     { label: 'Gestión de Usuarios', handler: createNavHandler(onAdminUserManagementClick), condition: isAdmin && !!onAdminUserManagementClick },
   ];

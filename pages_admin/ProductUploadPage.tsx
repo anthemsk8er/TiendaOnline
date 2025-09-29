@@ -17,6 +17,7 @@ interface ProductUploadPageProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   productIdToEdit?: string | null;
   onFinished: () => void;
   session: Session | null;

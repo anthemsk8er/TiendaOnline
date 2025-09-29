@@ -16,6 +16,7 @@ interface OrdersPageProps {
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
   onAdminOrdersClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   session: Session | null;
   profile: Profile | null;
   onLogout: () => void;

@@ -17,6 +17,7 @@ interface DiscountCodeManagementPageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItemCount: number;
   session: Session | null;
   profile: Profile | null;

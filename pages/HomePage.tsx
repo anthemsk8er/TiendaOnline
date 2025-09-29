@@ -43,6 +43,7 @@ interface HomePageProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItems: CartItem[];
   onAddToCart: (product: Product, quantity: number) => void;
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;

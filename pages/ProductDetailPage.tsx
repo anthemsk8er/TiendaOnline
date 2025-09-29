@@ -31,6 +31,7 @@ interface ProductDetailPageProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItems: CartItem[];
   onAddToCart: (product: ProductType, quantity: number) => void;
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;
@@ -40,10 +41,11 @@ interface ProductDetailPageProps {
   onLogout: () => void;
   showAuthModal: (view: 'login' | 'register') => void;
   onEditProduct: (id: string) => void;
+  onSelectPromotionAndAddToCart: (product: ProductType, promotion: PromotionCard) => void;
 }
 
 const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
-  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct } = props;
+  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct, onSelectPromotionAndAddToCart } = props;
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -142,23 +144,8 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
 
   const handleSelectPromotion = (promotion: PromotionCard) => {
     if (!product) return;
-    // Extract quantity from title, e.g., "Comprar 2 unidades" -> 2
-    const quantity = parseInt(promotion.title.match(/\d+/)?.[0] || '1', 10);
-    const newUnitPrice = promotion.price / quantity;
-
-    // First, add the product to the cart if it's not already there.
-    // This ensures there's an item to update.
-    const isInCart = cartItems.some(item => item.id === product.id);
-    if (!isInCart) {
-      onAddToCart(product, 0); // Add with 0 quantity initially
-    }
-
-    // Use a timeout to ensure the state update from onAddToCart has propagated
-    // before we update the quantity and price.
-    setTimeout(() => {
-      onUpdateCartQuantity(product.id, quantity, newUnitPrice);
-      setIsCheckoutOpen(true);
-    }, 50); 
+    onSelectPromotionAndAddToCart(product, promotion);
+    setIsCheckoutOpen(true);
   };
   
   const handleProceedToCheckout = () => {

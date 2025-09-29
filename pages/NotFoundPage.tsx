@@ -26,6 +26,7 @@ interface NotFoundPageProps {
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
   onAdminOrdersClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
 }
 
 const NotFoundPage: React.FC<NotFoundPageProps> = (props) => {

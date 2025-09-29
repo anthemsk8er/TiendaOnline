@@ -7,6 +7,7 @@ import ProductDetailPage from './pages/ProductDetailPage';
 import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
+import WelcomePage from './pages/WelcomePage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
 // FIX: Corrected import path
 import { ProductUploadPage } from './pages_admin/ProductUploadPage';
@@ -18,8 +19,9 @@ import ReviewManagementPage from './pages_admin/ReviewManagementPage';
 import AuthModal from './components/auth/AuthModal';
 import { supabase } from './lib/supabaseClient';
 // FIX: Corrected import path
-import type { Product, CartItem, Profile } from './types';
+import type { Product, CartItem, Profile, PromotionCard } from './types';
 import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
+
 
 interface ViewState {
     view: string;
@@ -41,7 +43,7 @@ const App = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [authModalView, setAuthModalView] = useState<'login' | 'register' | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
-
+    
     // Navigation handler
     const navigate = (newView: string, id: string | null = null, category: string | null = null, slugData: string | null = null) => {
         let path = ''; // Paths for hash routing don't need a leading slash
@@ -60,6 +62,9 @@ const App = () => {
                 break;
             case 'legal':
                 path = 'legal';
+                break;
+            case 'welcome':
+                path = 'bienvenida';
                 break;
             case 'admin-products':
                 path = 'admin/productos';
@@ -115,6 +120,9 @@ const App = () => {
                         break;
                     case 'legal':
                         viewState = { view: 'legal', productSlug: null, categoryFilter: null };
+                        break;
+                    case 'bienvenida':
+                        viewState = { view: 'welcome', productSlug: null, categoryFilter: null };
                         break;
                     case 'admin':
                         if (pathParts.length > 1) {
@@ -268,6 +276,7 @@ const App = () => {
     const handleAdminOrdersClick = () => navigate('admin-orders');
     const handleAdminDiscountManagementClick = () => navigate('admin-discounts');
     const handleAdminReviewManagementClick = () => navigate('admin-reviews');
+    const handleAdminWelcomePageClick = () => navigate('welcome');
     const handleAdminDiscountFormClick = () => {
         setEditingDiscountCodeId(null);
         navigate('admin-discount-form');
@@ -340,6 +349,49 @@ const App = () => {
     const handleRemoveFromCart = (productId: string) => {
         setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
     };
+    
+    const handleSelectPromotionAndAddToCart = (product: Product, promotion: PromotionCard) => {
+        const quantityMatch = promotion.title.match(/\d+/);
+        const quantity = quantityMatch ? parseInt(quantityMatch[0], 10) : 1;
+        if (quantity <= 0) return;
+
+        const newUnitPrice = promotion.price / quantity;
+        
+        setCartItems(prevItems => {
+            const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
+
+            if (existingItemIndex > -1) {
+                // Item exists, update it
+                const newItems = [...prevItems];
+                const updatedItem = { 
+                    ...newItems[existingItemIndex], 
+                    quantity: quantity, 
+                    price: newUnitPrice 
+                };
+
+                // Preserve the very first price as the original price
+                if (newItems[existingItemIndex].originalPrice == null) {
+                     // The originalPrice from the product object is the base single-unit price before any discounts
+                     updatedItem.originalPrice = product.originalPrice ?? product.price;
+                }
+                
+                newItems[existingItemIndex] = updatedItem;
+                return newItems;
+            } else {
+                // Item does not exist, add it
+                const newCartItem: CartItem = {
+                    id: product.id,
+                    vendor: product.vendor,
+                    title: product.title,
+                    price: newUnitPrice,
+                    originalPrice: product.originalPrice ?? product.price, // Base price before promotion
+                    image: product.images[0],
+                    quantity: quantity
+                };
+                return [...prevItems, newCartItem];
+            }
+        });
+    };
 
     // Auth Handlers
     const handleLogout = async () => {
@@ -381,6 +433,8 @@ const App = () => {
         onAdminOrdersClick: handleAdminOrdersClick,
         onAdminDiscountManagementClick: handleAdminDiscountManagementClick,
         onAdminReviewManagementClick: handleAdminReviewManagementClick,
+        onAdminWelcomePageClick: handleAdminWelcomePageClick,
+        onSelectPromotionAndAddToCart: handleSelectPromotionAndAddToCart,
     };
 
     const renderView = () => {
@@ -403,6 +457,8 @@ const App = () => {
                 return <ContactFaqPage {...pageProps} />;
             case 'legal':
                 return <LegalPage {...pageProps} />;
+            case 'welcome':
+                return <WelcomePage {...pageProps} />;
             case 'admin-products':
                 return <ProductManagementPage 
                     {...pageProps}

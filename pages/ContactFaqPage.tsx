@@ -1,6 +1,4 @@
-
-
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 // FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem, Product, Profile } from '../types';
 import type { Session } from '@supabase/supabase-js';
@@ -10,10 +8,10 @@ import { AtSymbolIcon, MapPinIcon, ChatIcon, ChevronDownIcon, ChevronUpIcon } fr
 import CheckoutPopup from '../components/cart_delivery/CheckoutPopup';
 import Cart from '../components/cart_delivery/Cart';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 interface ContactFaqPageProps {
-  // FIX: Updated onProductClick to accept productName to match the signature of the passed function.
-  onProductClick: (productId: string, productName: string) => void;
+  onProductClick: (slug: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -24,6 +22,7 @@ interface ContactFaqPageProps {
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItems: CartItem[];
   onAddToCart: (product: Product, quantity: number) => void;
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;
@@ -83,6 +82,65 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  
+  const [formData, setFormData] = useState({ name: '', email: '', message: '' });
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+  const [formSuccess, setFormSuccess] = useState(false);
+  const recaptchaRef = useRef<ReCAPTCHA>(null);
+
+  const SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleCaptchaChange = (token: string | null) => {
+      setCaptchaToken(token);
+      if (token) setFormError('');
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!captchaToken) {
+          setFormError('Por favor, completa el reCAPTCHA para continuar.');
+          return;
+      }
+
+      setLoading(true);
+      setFormError('');
+      setFormSuccess(false);
+
+      try {
+          const response = await fetch('/.netlify/functions/verify-recaptcha', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                  recaptchaToken: captchaToken,
+                  nombre: formData.name,
+                  email: formData.email,
+                  mensaje: formData.message,
+              }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+              setFormSuccess(true);
+          } else {
+              setFormError(data.message || 'Error al verificar. Inténtalo de nuevo.');
+              recaptchaRef.current?.reset();
+              setCaptchaToken(null);
+          }
+      } catch (err) {
+          setFormError('Error de red. Por favor, revisa tu conexión.');
+          console.error(err);
+      } finally {
+          setLoading(false);
+      }
+  };
+
 
   const handleOpenCart = () => setIsCartOpen(true);
   const handleProceedToCheckout = () => {
@@ -141,32 +199,48 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
 
             {/* Contact Form */}
             <div className="bg-white p-8 rounded-lg shadow-md">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6 animate-fade-in-up">Envíanos un mensaje</h2>
-              <form className="space-y-6">
-                <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre completo</label>
-                  <div className="mt-1">
-                    <input type="text" name="name" id="name" className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="Tu nombre" />
+              {formSuccess ? (
+                  <div className="text-center py-8 animate-fade-in-up">
+                      <h2 className="text-2xl font-bold text-gray-800">¡Mensaje Enviado!</h2>
+                      <p className="mt-2 text-gray-600">Gracias por contactarnos. Te responderemos lo antes posible.</p>
+                      <button onClick={() => setFormSuccess(false)} className="mt-6 bg-[#e52e8d] text-white font-bold py-2 px-6 rounded-full hover:bg-[#c82278] transition-colors">
+                          Enviar otro mensaje
+                      </button>
                   </div>
-                </div>
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700">Correo electrónico</label>
-                  <div className="mt-1">
-                    <input type="email" name="email" id="email" className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="tu@email.com" />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="message" className="block text-sm font-medium text-gray-700">Mensaje</label>
-                  <div className="mt-1">
-                    <textarea id="message" name="message" rows={4} className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="Escribe tu consulta aquí..."></textarea>
-                  </div>
-                </div>
-                <div>
-                  <button type="submit" className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center gap-2 text-base shadow-lg">
-                    Enviar Mensaje
-                  </button>
-                </div>
-              </form>
+              ) : (
+                <>
+                  <h2 className="text-2xl font-bold text-gray-800 mb-6 animate-fade-in-up">Envíanos un mensaje</h2>
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div>
+                      <label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre completo</label>
+                      <div className="mt-1">
+                        <input type="text" name="name" id="name" value={formData.name} onChange={handleFormChange} required className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="Tu nombre" />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="email" className="block text-sm font-medium text-gray-700">Correo electrónico</label>
+                      <div className="mt-1">
+                        <input type="email" name="email" id="email" value={formData.email} onChange={handleFormChange} required className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="tu@email.com" />
+                      </div>
+                    </div>
+                    <div>
+                      <label htmlFor="message" className="block text-sm font-medium text-gray-700">Mensaje</label>
+                      <div className="mt-1">
+                        <textarea id="message" name="message" rows={4} value={formData.message} onChange={handleFormChange} required className="w-full px-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none" placeholder="Escribe tu consulta aquí..."></textarea>
+                      </div>
+                    </div>
+                    <div className="transform scale-75 -translate-x-8">
+                       <ReCAPTCHA ref={recaptchaRef} sitekey={SITE_KEY} onChange={handleCaptchaChange} />
+                    </div>
+                    {formError && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{formError}</p>}
+                    <div>
+                      <button type="submit" disabled={loading || !captchaToken} className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center gap-2 text-base shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                        {loading ? 'Enviando...' : 'Enviar Mensaje'}
+                      </button>
+                    </div>
+                  </form>
+                </>
+              )}
             </div>
           </div>
         </div>

@@ -16,6 +16,7 @@ interface DiscountCodeFormPageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItemCount: number;
   discountCodeIdToEdit?: string | null;
   onFinished: () => void;

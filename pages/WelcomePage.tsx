@@ -33,7 +33,7 @@ interface WelcomePageProps {
 }
 
 const WelcomePage: React.FC<WelcomePageProps> = (props) => {
-    const { onProfileClick } = props;
+    const { onProfileClick, showAuthModal } = props;
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
     const [email, setEmail] = useState('');
@@ -46,10 +46,14 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
+        // reCAPTCHA is temporarily disabled for diagnostics.
+        // Uncomment the block below to re-enable it.
+        /*
         if (!executeRecaptcha) {
             setError("reCAPTCHA no está listo. Por favor, espera un momento y vuelve a intentarlo.");
             return;
         }
+        */
 
         const trimmedFullName = fullName.trim();
         const trimmedPhone = phone.trim();
@@ -74,13 +78,13 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
         setMessage(null);
 
         try {
-            const recaptchaToken = await executeRecaptcha('signup');
+            // const recaptchaToken = await executeRecaptcha('signup');
 
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: trimmedEmail,
                 password: trimmedPassword,
                 options: {
-                    captchaToken: recaptchaToken,
+                    // captchaToken: recaptchaToken,
                     data: {
                         full_name: trimmedFullName,
                         phone: trimmedPhone,
@@ -95,7 +99,6 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                  if (signUpError.message.includes("To many requests")) {
                     throw new Error("Demasiados intentos. Por favor, espera un momento.");
                 }
-                // Supabase might return a generic "invalid email" for various reasons including failed reCAPTCHA or email provider issues
                 if (signUpError.message.toLowerCase().includes('invalid format')) {
                     throw new Error(`La dirección de correo "${trimmedEmail}" no es válida.`);
                 }
@@ -103,7 +106,6 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
             }
 
             if (data.user) {
-                // If email confirmation is enabled, the user object will exist but session will be null.
                 const successMessage = data.session 
                     ? '¡Registro exitoso! Serás redirigido a tu perfil...' 
                     : '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.';
@@ -169,12 +171,29 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                             <p className="text-xs text-gray-500 mt-1 pl-1">De preferencia, el mismo que usas para tus compras.</p>
                         </div>
                        
-                        {error && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{error}</p>}
+                        {error && (
+                            <div className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">
+                                {error.includes("ya está registrado") ? (
+                                    <span>
+                                        Este correo electrónico ya está registrado.{" "}
+                                        <button
+                                            type="button"
+                                            onClick={() => showAuthModal('login')}
+                                            className="font-bold underline hover:text-red-700 focus:outline-none"
+                                        >
+                                            Por favor, inicia sesión.
+                                        </button>
+                                    </span>
+                                ) : (
+                                    <span>{error}</span>
+                                )}
+                            </div>
+                        )}
                         {message && <p className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-md">{message}</p>}
 
                         <button
                             type="submit"
-                            disabled={loading || !executeRecaptcha}
+                            disabled={loading}
                             className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50"
                         >
                             {loading ? 'Registrando...' : 'Registrarme y Obtener Regalos'}

@@ -76,21 +76,11 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
         try {
             const recaptchaToken = await executeRecaptcha('signUp');
 
-            const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ recaptchaToken }),
-            });
-            const recaptchaData = await recaptchaResponse.json();
-
-            if (!recaptchaResponse.ok || !recaptchaData.success) {
-                throw new Error(recaptchaData.message || 'La verificación de reCAPTCHA falló.');
-            }
-
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: trimmedEmail,
                 password: trimmedPassword,
                 options: {
+                    captchaToken: recaptchaToken,
                     data: {
                         full_name: trimmedFullName,
                         phone: trimmedPhone,

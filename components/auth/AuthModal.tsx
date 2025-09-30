@@ -32,21 +32,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
     try {
         const recaptchaToken = await executeRecaptcha('authAction');
 
-        // Step 1: Verify reCAPTCHA token with our Netlify function
-        const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ recaptchaToken }),
-        });
-        const recaptchaData = await recaptchaResponse.json();
-
-        if (!recaptchaResponse.ok || !recaptchaData.success) {
-            throw new Error(recaptchaData.message || 'La verificación de reCAPTCHA falló.');
-        }
-
-        // Step 2: Proceed with Supabase Auth if reCAPTCHA is valid
         if (currentView === 'login') {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
+            const { error } = await supabase.auth.signInWithPassword({ 
+                email, 
+                password,
+                options: {
+                    captchaToken: recaptchaToken,
+                }
+            });
             if (error) throw error;
             onClose();
         } else { // Register
@@ -54,6 +47,7 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
                 email,
                 password,
                 options: {
+                    captchaToken: recaptchaToken,
                     data: { full_name: fullName },
                 },
             });

@@ -4,7 +4,6 @@ import type { Profile, CartItem, Product } from '../types';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { supabase } from '../lib/supabaseClient';
-import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 import { UserIcon, AtSymbolIcon, LockClosedIcon, ChatIcon } from '../components/product_detail_page/Icons';
 
 interface WelcomePageProps {
@@ -41,7 +40,6 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
-    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -64,23 +62,15 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
             return;
         }
 
-        if (!executeRecaptcha) {
-            setError('reCAPTCHA no está listo. Intenta de nuevo.');
-            return;
-        }
-
         setLoading(true);
         setError(null);
         setMessage(null);
 
         try {
-            const recaptchaToken = await executeRecaptcha('signUp');
-
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: trimmedEmail,
                 password: trimmedPassword,
                 options: {
-                    captchaToken: recaptchaToken,
                     data: {
                         full_name: trimmedFullName,
                         phone: trimmedPhone,
@@ -159,15 +149,11 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
 
                         <button
                             type="submit"
-                            disabled={loading || !executeRecaptcha}
+                            disabled={loading}
                             className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50"
                         >
                             {loading ? 'Registrando...' : 'Registrarme y Obtener Regalos'}
                         </button>
-
-                        <p className="text-xs text-gray-400 text-center pt-2">
-                            Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.
-                        </p>
                     </form>
                 </div>
             </main>

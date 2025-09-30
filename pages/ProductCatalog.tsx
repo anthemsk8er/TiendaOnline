@@ -176,7 +176,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
       </main>
       <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
       {/* FIX: Corrected typo from onUpdateQuantity to onUpdateCartQuantity */}
-      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} />
+      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} session={session} profile={profile} />
       <Cart 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 

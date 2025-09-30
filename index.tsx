@@ -1,3 +1,5 @@
+
+
 import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
@@ -237,6 +239,9 @@ const App = () => {
                         role: profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT',
                         email: profileData?.email ?? session.user.email,
                         phone: profileData?.phone ?? userMetadata?.phone,
+                        gift_coupon_1_used: profileData?.gift_coupon_1_used ?? false,
+                        gift_coupon_2_used: profileData?.gift_coupon_2_used ?? false,
+                        gift_coupon_3_used: profileData?.gift_coupon_3_used ?? false,
                     };
                     setProfile(finalProfile);
                 }

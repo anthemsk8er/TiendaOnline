@@ -263,6 +263,9 @@ const ContactFaqPage: React.FC<ContactFaqPageProps> = (props) => {
         onClose={() => setIsCheckoutOpen(false)}
         items={cartItems}
         onUpdateCartQuantity={onUpdateCartQuantity}
+        // FIX: Added missing session and profile props required by CheckoutPopup.
+        session={session}
+        profile={profile}
       />
       <Cart
         isOpen={isCartOpen}

@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { XMarkIcon, UserIcon, ChatIcon, AtSymbolIcon, ShoppingBagIcon, WalletIcon } from '../product_detail_page/Icons';
-import type { CartItem, DiscountCode, Order, PromotionsData, PromotionCard } from '../../types';
+import type { CartItem, DiscountCode, Order, PromotionsData, PromotionCard, Profile } from '../../types';
 import { supabase } from '../../lib/supabaseClient';
-import type { PostgrestSingleResponse } from '@supabase/supabase-js';
+import type { PostgrestSingleResponse, Session } from '@supabase/supabase-js';
 import type { Database, Json } from '../../lib/database.types';
 import ProductPromotions from '../product_detail_page/ProductPromotions';
 
@@ -11,6 +11,8 @@ interface CheckoutPopupProps {
   onClose: () => void;
   items: CartItem[];
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;
+  session: Session | null;
+  profile: Profile | null;
 }
 
 const upsellProduct = {
@@ -19,7 +21,7 @@ const upsellProduct = {
     image: 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/products/colageno.jpg'
 };
 
-const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, onUpdateCartQuantity }) => {
+const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, onUpdateCartQuantity, session, profile }) => {
   const [isUpsellChecked, setIsUpsellChecked] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -163,6 +165,10 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
   }, [formData]);
 
   const handleApplyDiscount = async () => {
+      if (appliedDiscountCode) {
+          setDiscountError("Solo se puede aplicar un código de descuento por orden.");
+          return;
+      }
       const codeToVerify = formData.discountCode.trim().toUpperCase();
       if (!codeToVerify) {
           setDiscountError("Por favor, ingresa un código.");
@@ -201,6 +207,26 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
           setDiscountError("Este código de descuento no está activo.");
           return;
       }
+
+      if (profile) {
+        if (codeToVerify === 'HOLADUERMEKB10' && profile.gift_coupon_1_used) {
+          setDiscountError("Ya has utilizado este cupón de regalo.");
+          return;
+        }
+        if (codeToVerify === 'HOLAKETOCAPS10' && profile.gift_coupon_2_used) {
+          setDiscountError("Ya has utilizado este cupón de regalo.");
+          return;
+        }
+        if (codeToVerify === 'HOLAKETOCAPS15' && profile.gift_coupon_3_used) {
+          setDiscountError("Ya has utilizado este cupón de regalo.");
+          return;
+        }
+      }
+
+      if (codeData.minimum_purchase_amount && cartSubtotal < codeData.minimum_purchase_amount) {
+          setDiscountError(`Esta compra debe ser de al menos S/ ${codeData.minimum_purchase_amount.toFixed(2)} para usar este código.`);
+          return;
+      }
       
       const now = new Date();
       if (codeData.limitation_type === 'date_range' && codeData.end_date && new Date(codeData.end_date) < now) {
@@ -209,8 +235,23 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
       }
 
       if (codeData.limitation_type === 'usage_limit' && codeData.usage_limit !== null && codeData.times_used >= codeData.usage_limit) {
-          setDiscountError("Este código ha alcanzado su límite de usos.");
+          setDiscountError("Este código ha alcanzado su límite de usos totales.");
           return;
+      }
+      
+      if (session?.user.id && codeData.usage_limit_per_user) {
+          const { count, error: countError } = await supabase
+              .from('orders')
+              .select('id', { count: 'exact', head: true })
+              .eq('user_id', session.user.id)
+              .eq('discount_code', codeToVerify);
+
+          if (countError) throw countError;
+
+          if (count !== null && count >= codeData.usage_limit_per_user) {
+              setDiscountError("Has alcanzado el límite de usos para este código.");
+              return;
+          }
       }
       
       if (codeData.scope === 'product' && !items.some(item => item.id === codeData.product_id)) {
@@ -267,11 +308,40 @@ const CheckoutPopup: React.FC<CheckoutPopupProps> = ({ isOpen, onClose, items, o
             total_amount: total,
             discount_code: appliedDiscountCode ? appliedDiscountCode.code : null,
             discount_amount: discountAmount > 0 ? discountAmount : null,
+            user_id: session?.user.id ?? null,
         };
         const { error: insertError } = await supabase.from('orders').insert([orderData]);
         if (insertError) {
           console.error('Error saving order to database:', insertError);
-          return;
+          // Don't stop here, allow the WhatsApp message to be sent anyway
+        } else {
+            // If a gift code was used by a logged-in user, mark it as used.
+            if (appliedDiscountCode && session?.user.id) {
+                let profileUpdate = {};
+                switch (appliedDiscountCode.code) {
+                    case 'HOLADUERMEKB10':
+                        profileUpdate = { gift_coupon_1_used: true };
+                        break;
+                    case 'HOLAKETOCAPS10':
+                        profileUpdate = { gift_coupon_2_used: true };
+                        break;
+                    case 'HOLAKETOCAPS15':
+                        profileUpdate = { gift_coupon_3_used: true };
+                        break;
+                    default:
+                        break;
+                }
+
+                if (Object.keys(profileUpdate).length > 0) {
+                    const { error: profileUpdateError } = await supabase
+                        .from('profiles')
+                        .update(profileUpdate)
+                        .eq('id', session.user.id);
+                    if (profileUpdateError) {
+                        console.error("Error updating gift coupon status:", profileUpdateError);
+                    }
+                }
+            }
         }
     }
     

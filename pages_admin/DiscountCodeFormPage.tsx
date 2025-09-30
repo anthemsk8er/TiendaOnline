@@ -39,6 +39,8 @@ const initialFormState: DiscountCodeUpsertData = {
     scope: 'cart',
     product_id: null,
     is_active: true,
+    minimum_purchase_amount: null,
+    usage_limit_per_user: null,
 };
 
 const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCodeIdToEdit, onFinished, ...props }) => {
@@ -116,6 +118,8 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
             start_date: formData.limitation_type === 'date_range' ? formData.start_date : null,
             end_date: formData.limitation_type === 'date_range' ? formData.end_date : null,
             product_id: formData.scope === 'product' ? formData.product_id : null,
+            minimum_purchase_amount: formData.minimum_purchase_amount ? Number(formData.minimum_purchase_amount) : null,
+            usage_limit_per_user: formData.usage_limit_per_user ? Number(formData.usage_limit_per_user) : null,
         };
 
         try {
@@ -169,7 +173,9 @@ const DiscountCodeFormPage: React.FC<DiscountCodeFormPageProps> = ({ discountCod
                         {/* Limitation */}
                         <fieldset className="space-y-4 p-4 border rounded-lg">
                              <legend className="font-semibold text-lg px-2">Límites y Restricciones</legend>
-                             <div><label htmlFor="limitation_type" className="block text-sm font-medium text-gray-700">Limitar por</label><select name="limitation_type" value={formData.limitation_type} onChange={handleInputChange} className={inputClass}><option value="date_range">Rango de Fechas</option><option value="usage_limit">Cantidad de Usos</option></select></div>
+                             <div><label htmlFor="minimum_purchase_amount" className="block text-sm font-medium text-gray-700">Monto Mínimo de Compra (S/)</label><input type="number" name="minimum_purchase_amount" value={formData.minimum_purchase_amount || ''} onChange={handleInputChange} step="0.01" className={inputClass} placeholder="Ej: 100" /></div>
+                             <div><label htmlFor="usage_limit_per_user" className="block text-sm font-medium text-gray-700">Límite de Usos por Usuario</label><input type="number" name="usage_limit_per_user" value={formData.usage_limit_per_user || ''} onChange={handleInputChange} step="1" className={inputClass} placeholder="Ej: 1" /></div>
+                             <div><label htmlFor="limitation_type" className="block text-sm font-medium text-gray-700">Limitar por</label><select name="limitation_type" value={formData.limitation_type} onChange={handleInputChange} className={inputClass}><option value="date_range">Rango de Fechas</option><option value="usage_limit">Cantidad de Usos Totales</option></select></div>
                              {formData.limitation_type === 'date_range' && (<div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-md"><div><label htmlFor="start_date" className="block text-sm font-medium text-gray-700">Fecha de Inicio</label><input type="date" name="start_date" value={formData.start_date || ''} onChange={handleInputChange} className={inputClass} /></div><div><label htmlFor="end_date" className="block text-sm font-medium text-gray-700">Fecha de Fin</label><input type="date" name="end_date" value={formData.end_date || ''} onChange={handleInputChange} className={inputClass} /></div></div>)}
                              {formData.limitation_type === 'usage_limit' && (<div className="p-4 bg-slate-50 rounded-md space-y-4"><div><label className="flex items-center gap-2"><input type="checkbox" name="unlimited_usage" checked={useUsageLimit} onChange={handleInputChange} className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500" /><span>Uso Ilimitado</span></label></div>{!useUsageLimit && (<div><label htmlFor="usage_limit" className="block text-sm font-medium text-gray-700">Número de Usos</label><input type="number" name="usage_limit" value={formData.usage_limit || ''} onChange={handleInputChange} className={inputClass} /></div>)}</div>)}
                         </fieldset>

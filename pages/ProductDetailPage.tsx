@@ -45,7 +45,7 @@ interface ProductDetailPageProps {
 }
 
 const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
-  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct, onSelectPromotionAndAddToCart } = props;
+  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct, onSelectPromotionAndAddToCart, session } = props;
   const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -234,7 +234,7 @@ const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
         
       </main>
       <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
-      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} />
+      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} session={session} profile={profile} />
       <Cart 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 

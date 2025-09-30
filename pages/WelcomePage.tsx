@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Profile, CartItem, Product } from '../types';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
+import { supabase } from '../lib/supabaseClient';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
+import { UserIcon, AtSymbolIcon, LockClosedIcon, ChatIcon } from '../components/product_detail_page/Icons';
 
 interface WelcomePageProps {
   onProductClick: (slug: string) => void;
@@ -30,41 +33,152 @@ interface WelcomePageProps {
 }
 
 const WelcomePage: React.FC<WelcomePageProps> = (props) => {
-    const { profile } = props;
+    const { onProfileClick } = props;
+    const [fullName, setFullName] = useState('');
+    const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [message, setMessage] = useState<string | null>(null);
+    const { executeRecaptcha } = useGoogleReCaptcha();
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const trimmedFullName = fullName.trim();
+        const trimmedPhone = phone.trim();
+        const trimmedEmail = email.trim();
+        const trimmedPassword = password.trim();
+
+        if (!trimmedFullName || !trimmedPhone || !trimmedEmail || !trimmedPassword) {
+            setError('Por favor, completa todos los campos.');
+            return;
+        }
+        if (!/^\d{9}$/.test(trimmedPhone)) {
+            setError('Por favor, ingresa un número de celular válido de 9 dígitos.');
+            return;
+        }
+        if (trimmedPassword.length < 6) {
+            setError('La contraseña debe tener al menos 6 caracteres.');
+            return;
+        }
+
+        if (!executeRecaptcha) {
+            setError('reCAPTCHA no está listo. Intenta de nuevo.');
+            return;
+        }
+
+        setLoading(true);
+        setError(null);
+        setMessage(null);
+
+        try {
+            const recaptchaToken = await executeRecaptcha('signUp');
+
+            const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ recaptchaToken }),
+            });
+            const recaptchaData = await recaptchaResponse.json();
+
+            if (!recaptchaResponse.ok || !recaptchaData.success) {
+                throw new Error(recaptchaData.message || 'La verificación de reCAPTCHA falló.');
+            }
+
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email: trimmedEmail,
+                password: trimmedPassword,
+                options: {
+                    data: {
+                        full_name: trimmedFullName,
+                        phone: trimmedPhone,
+                    },
+                },
+            });
+
+            if (signUpError) {
+                if (signUpError.message.includes("User already registered")) {
+                    throw new Error("Este correo electrónico ya está registrado. Por favor, inicia sesión.");
+                }
+                throw signUpError;
+            }
+
+            if (data.user) {
+                setMessage('¡Registro exitoso! Serás redirigido a tu perfil...');
+                setTimeout(() => {
+                    if (onProfileClick) onProfileClick();
+                }, 2000);
+            } else {
+                 throw new Error('No se pudo crear el usuario. Por favor, revisa tus datos e intenta de nuevo.');
+            }
+
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const inputClass = "w-full pl-10 pr-4 py-3 bg-slate-100 text-gray-900 placeholder-gray-500 border border-gray-300 rounded-md focus:ring-2 focus:ring-pink-500 focus:border-pink-500 outline-none transition-colors";
 
     return (
-        <div className="bg-slate-50 min-h-screen">
+        <div className="bg-slate-50 min-h-screen flex flex-col">
             <Header {...props} onCartClick={() => {}} />
-            <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <div className="max-w-4xl mx-auto space-y-8 bg-white p-8 rounded-lg shadow-md mt-16 mb-16">
+            <main className="flex-grow flex items-center justify-center py-12 px-4">
+                <div className="w-full max-w-md mx-auto bg-white p-8 rounded-xl shadow-lg">
                     <div className="text-center">
-                        <h1 className="text-4xl font-black text-gray-800 tracking-tight">
-                            ¡Bienvenido a la página de bienvenida!
-                        </h1>
-                        {profile && (
-                            <p className="mt-2 text-lg text-gray-600">
-                                Hola, {profile.full_name.split(' ')[0]}
-                            </p>
-                        )}
-                        <p className="mt-4 text-gray-600">
-                            Esta página es un marcador de posición. El contenido para la página de bienvenida se puede agregar aquí.
-                            Desde el panel de administración, puede administrar varios aspectos de la tienda.
-                        </p>
-                        <div className="mt-8 flex justify-center gap-4">
-                            <button
-                                onClick={props.onHomeClick}
-                                className="bg-[#e52e8d] text-white font-bold py-3 px-8 rounded-full hover:bg-[#c82278] transition-colors"
-                            >
-                                Ir a Inicio
-                            </button>
-                            <button
-                                onClick={() => props.onCatalogClick()}
-                                className="bg-gray-700 text-white font-bold py-3 px-8 rounded-full hover:bg-gray-800 transition-colors"
-                            >
-                                Ver Catálogo
-                            </button>
-                        </div>
+                        <h1 className="text-3xl font-bold text-gray-800">Crea tu Cuenta y Obtén Beneficios</h1>
+                        <p className="mt-2 text-gray-600">Únete a nuestra comunidad para acceder a regalos y sorpresas únicas.</p>
                     </div>
+
+                    <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+                        <div>
+                            <label htmlFor="fullName" className="sr-only">Nombre Completo</label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><UserIcon className="w-5 h-5 text-gray-400"/></span>
+                                <input type="text" id="fullName" value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Nombre Completo" required className={inputClass} />
+                            </div>
+                        </div>
+                         <div>
+                            <label htmlFor="email" className="sr-only">Correo Electrónico</label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><AtSymbolIcon className="w-5 h-5 text-gray-400"/></span>
+                                <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="Correo Electrónico" required className={inputClass} />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="password" className="sr-only">Contraseña</label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon className="w-5 h-5 text-gray-400"/></span>
+                                <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Contraseña" required className={inputClass} />
+                            </div>
+                        </div>
+                        <div>
+                            <label htmlFor="phone" className="sr-only">Celular (WhatsApp)</label>
+                            <div className="relative">
+                                <span className="absolute inset-y-0 left-0 flex items-center pl-3"><ChatIcon className="w-5 h-5 text-gray-400"/></span>
+                                <input type="tel" id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="Celular (WhatsApp)" required className={inputClass} />
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1 pl-1">De preferencia, el mismo que usas para tus compras.</p>
+                        </div>
+                       
+                        {error && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{error}</p>}
+                        {message && <p className="text-green-600 text-sm text-center bg-green-50 p-3 rounded-md">{message}</p>}
+
+                        <button
+                            type="submit"
+                            disabled={loading || !executeRecaptcha}
+                            className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50"
+                        >
+                            {loading ? 'Registrando...' : 'Registrarme y Obtener Regalos'}
+                        </button>
+
+                        <p className="text-xs text-gray-400 text-center pt-2">
+                            Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.
+                        </p>
+                    </form>
                 </div>
             </main>
             <Footer {...props} />

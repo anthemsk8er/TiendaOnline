@@ -4,7 +4,7 @@ import type { Profile, CartItem, Product } from '../types';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { supabase } from '../lib/supabaseClient';
-import { UserIcon, ChatIcon, GiftIcon } from '../components/product_detail_page/Icons';
+import { UserIcon, ChatIcon, GiftIcon, AtSymbolIcon, LockClosedIcon } from '../components/product_detail_page/Icons';
 import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 const welcomeHeroImage = 'https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/index-hero-img/promo_energia_natural.jpg';
@@ -35,6 +35,8 @@ interface WelcomePageProps {
 const WelcomePage: React.FC<WelcomePageProps> = (props) => {
     const [fullName, setFullName] = useState('');
     const [phone, setPhone] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -42,12 +44,16 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!fullName.trim() || !phone.trim()) {
+        if (!fullName.trim() || !phone.trim() || !email.trim() || !password.trim()) {
             setError('Por favor, completa todos los campos.');
             return;
         }
         if (!/^\d{9}$/.test(phone.trim())) {
             setError('Por favor, ingresa un número de celular válido de 9 dígitos.');
+            return;
+        }
+        if (password.length < 6) {
+            setError('La contraseña debe tener al menos 6 caracteres.');
             return;
         }
         if (!executeRecaptcha) {
@@ -60,7 +66,6 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
         try {
             const recaptchaToken = await executeRecaptcha('welcomeForm');
             
-            // Step 1: Verify reCAPTCHA token
             const recaptchaResponse = await fetch('/.netlify/functions/verify-recaptcha', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -72,25 +77,23 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                 throw new Error(recaptchaData.message || 'La verificación de reCAPTCHA falló.');
             }
 
-            // Step 2: Proceed with Supabase insert
             if (!supabase) {
                 throw new Error('No se pudo conectar a la base de datos.');
             }
 
-            const hardcodedDiscountId = '3030add2-d958-4d4b-afb8-7a6379aaecf4';
-            const { error: insertError } = await supabase
-                .from('leads')
-                .insert([{
-                    full_name: fullName,
-                    phone: phone,
-                    discount_code_id: hardcodedDiscountId
-                }]);
-            
-            if (insertError) {
-                if (insertError.code === '23505') { // Unique violation
-                     throw new Error('Este número de teléfono ya ha sido registrado.');
-                }
-                throw new Error('Hubo un error al registrar tus datos.');
+            const { data, error: signUpError } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        full_name: fullName,
+                        phone: phone, // This will be stored in user_metadata
+                    },
+                },
+            });
+
+            if (signUpError) {
+                throw new Error(signUpError.message || 'Hubo un error al registrar tu cuenta.');
             }
 
             setIsSuccess(true);
@@ -126,7 +129,7 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                             <div className="text-center py-8 animate-fade-in-up">
                                 <GiftIcon className="w-20 h-20 mx-auto text-[#16a085]" strokeWidth={1}/>
                                 <h2 className="mt-4 text-3xl font-bold text-gray-800">¡Gracias por registrarte, {fullName.split(' ')[0]}!</h2>
-                                <p className="mt-2 text-gray-600">Hemos guardado tus datos. Pronto nos pondremos en contacto contigo a través de WhatsApp para entregarte tus regalos y sorpresas exclusivas. ¡Mantente atento!</p>
+                                <p className="mt-2 text-gray-600">Hemos enviado un correo de confirmación a <strong>{email}</strong>. Por favor, haz clic en el enlace del correo para activar tu cuenta y acceder a todos los beneficios.</p>
                                 <button
                                     onClick={() => props.onCatalogClick()}
                                     className="mt-8 bg-[#e52e8d] text-white font-bold py-3 px-8 rounded-full hover:bg-[#c82278] transition-colors"
@@ -137,10 +140,10 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                         ) : (
                             <>
                                 <div className="text-center">
-                                    <h2 className="text-2xl font-bold text-gray-800">Obtén tus Regalos</h2>
-                                    <p className="mt-2 text-gray-600">Completa el formulario para unirte a nuestra comunidad y acceder a beneficios únicos.</p>
+                                    <h2 className="text-2xl font-bold text-gray-800">Crea tu Cuenta y Obtén Beneficios</h2>
+                                    <p className="mt-2 text-gray-600">Únete a nuestra comunidad para acceder a regalos y sorpresas únicas.</p>
                                 </div>
-                                <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+                                <form onSubmit={handleSubmit} className="mt-8 space-y-4">
                                     <div>
                                         <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 mb-1">Nombre Completo</label>
                                         <div className="relative">
@@ -149,12 +152,25 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                                         </div>
                                     </div>
                                     <div>
+                                        <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Correo Electrónico</label>
+                                        <div className="relative">
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3"><AtSymbolIcon className="w-5 h-5 text-gray-400" /></span>
+                                            <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="tu@correo.com" required className={inputClass} />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+                                        <div className="relative">
+                                            <span className="absolute inset-y-0 left-0 flex items-center pl-3"><LockClosedIcon className="w-5 h-5 text-gray-400" /></span>
+                                            <input type="password" id="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" required className={inputClass} />
+                                        </div>
+                                    </div>
+                                    <div>
                                         <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">Celular (WhatsApp)</label>
                                         <div className="relative">
                                             <span className="absolute inset-y-0 left-0 flex items-center pl-3"><ChatIcon className="w-5 h-5 text-gray-400" /></span>
                                             <input type="tel" id="phone" value={phone} onChange={e => setPhone(e.target.value)} placeholder="987654321" required className={inputClass} />
                                         </div>
-                                        <p className="text-xs text-gray-500 mt-1">De preferencia, el que usaste para contactarnos.</p>
                                     </div>
                                     
                                     {error && <p className="text-red-500 text-sm text-center bg-red-50 p-3 rounded-md">{error}</p>}
@@ -167,7 +183,7 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                                         {loading ? (
                                             <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
                                         ) : (
-                                            '¡Quiero mis Regalos!'
+                                            'Registrarme y Obtener Regalos'
                                         )}
                                     </button>
                                      <p className="text-xs text-gray-400 text-center">

@@ -128,12 +128,14 @@ const AuthModal: React.FC<AuthModalProps> = ({ view, onClose }) => {
         </form>
 
         <div className="text-center mt-6">
-            <button 
-                onClick={() => setCurrentView(currentView === 'login' ? 'register' : 'login')}
-                className="text-sm font-medium text-pink-600 hover:text-pink-500"
-            >
-                {currentView === 'login' ? '¿No tienes una cuenta? Regístrate' : '¿Ya tienes una cuenta? Ingresa'}
-            </button>
+            {currentView === 'register' && (
+                <button 
+                    onClick={() => setCurrentView('login')}
+                    className="text-sm font-medium text-pink-600 hover:text-pink-500"
+                >
+                    ¿Ya tienes una cuenta? Ingresa
+                </button>
+            )}
         </div>
         <p className="text-xs text-gray-400 text-center mt-4">
             Este sitio está protegido por reCAPTCHA y se aplican la <a href="https://policies.google.com/privacy" target="_blank" rel="noreferrer" className="underline">Política de Privacidad</a> y los <a href="https://policies.google.com/terms" target="_blank" rel="noreferrer" className="underline">Términos de Servicio</a> de Google.

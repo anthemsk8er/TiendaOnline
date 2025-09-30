@@ -1,7 +1,3 @@
-
-
-
-
 import React from 'react';
 
 export const StarIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -312,5 +308,11 @@ export const ShareIcon: React.FC<{className?: string; strokeWidth?: number}> = (
 export const GiftIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1014.625 7.5H9.375A2.625 2.625 0 1012 4.875zM21 11.25H3v-3.75a1.5 1.5 0 011.5-1.5h15a1.5 1.5 0 011.5 1.5v3.75z" />
+    </svg>
+);
+
+export const LockClosedIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
 );

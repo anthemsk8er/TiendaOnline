@@ -18,6 +18,7 @@ interface ProductCatalogProps {
   onHomeClick: () => void;
   onContactFaqClick: () => void;
   onLegalClick: () => void;
+  onProfileClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
@@ -39,7 +40,7 @@ interface ProductCatalogProps {
 }
 
 const ProductCatalog: React.FC<ProductCatalogProps> = ({ 
-    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
+    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick, onProfileClick,
     onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick,
     onAdminOrdersClick, onAdminDiscountManagementClick, onAdminReviewManagementClick,
     category, cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
@@ -90,6 +91,7 @@ const ProductCatalog: React.FC<ProductCatalogProps> = ({
         onCatalogClick={onCatalogClick} 
         onHomeClick={onHomeClick} 
         onContactFaqClick={onContactFaqClick} 
+        onProfileClick={onProfileClick}
         onAdminProductUploadClick={onAdminProductUploadClick} 
         onAdminProductManagementClick={onAdminProductManagementClick}
         onAdminUserManagementClick={onAdminUserManagementClick}

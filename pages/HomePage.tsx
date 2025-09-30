@@ -37,6 +37,7 @@ interface HomePageProps {
   onHomeClick: () => void;
   onContactFaqClick: () => void;
   onLegalClick: () => void;
+  onProfileClick: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
@@ -57,7 +58,7 @@ interface HomePageProps {
 }
 
 const HomePage: React.FC<HomePageProps> = ({ 
-    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick,
+    onProductClick, onCatalogClick, onHomeClick, onContactFaqClick, onLegalClick, onProfileClick,
     onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick, onAdminOrdersClick, onAdminDiscountManagementClick, onAdminReviewManagementClick,
     cartItems, onAddToCart, onUpdateCartQuantity, onRemoveFromCart,
     session, profile, onLogout, showAuthModal, onEditProduct
@@ -116,6 +117,7 @@ const HomePage: React.FC<HomePageProps> = ({
                 onCatalogClick={onCatalogClick} 
                 onHomeClick={onHomeClick} 
                 onContactFaqClick={onContactFaqClick} 
+                onProfileClick={onProfileClick}
                 onAdminProductUploadClick={onAdminProductUploadClick} 
                 onAdminProductManagementClick={onAdminProductManagementClick} 
                 onAdminUserManagementClick={onAdminUserManagementClick}

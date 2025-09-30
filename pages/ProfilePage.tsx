@@ -117,7 +117,7 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     }
     
     const giftCoupons = [
-        { code: 'HOLADUERMEKB10', description: 'S/ 10 de dscto. en Melatonina Adultos', productSlug: 'gomitas-de-melatonina-para-adultos', used: profile.gift_coupon_1_used },
+        { code: 'HOLADUERMEKB10', description: 'S/ 10 de dscto. en Melatonina Adultos', productSlug: 'gomitas-para-dormir', used: profile.gift_coupon_1_used },
         { code: 'HOLAKETOCAPS10', description: 'S/ 10 de dscto. en Cápsulas Keto Burner', productSlug: null, used: profile.gift_coupon_2_used }, // TODO: Update slug when product is added
         { code: 'HOLAKETOCAPS15', description: 'S/ 15 de dscto. en Cápsulas Keto Burner', productSlug: null, used: profile.gift_coupon_3_used }, // TODO: Update slug when product is added
     ];

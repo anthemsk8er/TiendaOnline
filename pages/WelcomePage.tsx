@@ -5,6 +5,7 @@ import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
 import { supabase } from '../lib/supabaseClient';
 import { UserIcon, AtSymbolIcon, LockClosedIcon, ChatIcon } from '../components/product_detail_page/Icons';
+import { useGoogleReCaptcha } from 'react-google-recaptcha-v3';
 
 interface WelcomePageProps {
   onProductClick: (slug: string) => void;
@@ -40,9 +41,15 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [message, setMessage] = useState<string | null>(null);
+    const { executeRecaptcha } = useGoogleReCaptcha();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!executeRecaptcha) {
+            setError("reCAPTCHA no está listo. Por favor, espera un momento y vuelve a intentarlo.");
+            return;
+        }
 
         const trimmedFullName = fullName.trim();
         const trimmedPhone = phone.trim();
@@ -67,10 +74,13 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
         setMessage(null);
 
         try {
+            const recaptchaToken = await executeRecaptcha('signup');
+
             const { data, error: signUpError } = await supabase.auth.signUp({
                 email: trimmedEmail,
                 password: trimmedPassword,
                 options: {
+                    captchaToken: recaptchaToken,
                     data: {
                         full_name: trimmedFullName,
                         phone: trimmedPhone,
@@ -82,14 +92,29 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                 if (signUpError.message.includes("User already registered")) {
                     throw new Error("Este correo electrónico ya está registrado. Por favor, inicia sesión.");
                 }
+                 if (signUpError.message.includes("To many requests")) {
+                    throw new Error("Demasiados intentos. Por favor, espera un momento.");
+                }
+                // Supabase might return a generic "invalid email" for various reasons including failed reCAPTCHA or email provider issues
+                if (signUpError.message.toLowerCase().includes('invalid format')) {
+                    throw new Error(`La dirección de correo "${trimmedEmail}" no es válida.`);
+                }
                 throw signUpError;
             }
 
             if (data.user) {
-                setMessage('¡Registro exitoso! Serás redirigido a tu perfil...');
-                setTimeout(() => {
-                    if (onProfileClick) onProfileClick();
-                }, 2000);
+                // If email confirmation is enabled, the user object will exist but session will be null.
+                const successMessage = data.session 
+                    ? '¡Registro exitoso! Serás redirigido a tu perfil...' 
+                    : '¡Registro exitoso! Revisa tu correo para confirmar tu cuenta.';
+                
+                setMessage(successMessage);
+
+                if(data.session && onProfileClick) {
+                    setTimeout(() => {
+                        onProfileClick();
+                    }, 2000);
+                }
             } else {
                  throw new Error('No se pudo crear el usuario. Por favor, revisa tus datos e intenta de nuevo.');
             }
@@ -149,7 +174,7 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
 
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !executeRecaptcha}
                             className="w-full bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors flex items-center justify-center text-base shadow-lg disabled:opacity-50"
                         >
                             {loading ? 'Registrando...' : 'Registrarme y Obtener Regalos'}

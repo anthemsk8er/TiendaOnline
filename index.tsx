@@ -215,29 +215,28 @@ const App = () => {
         const getProfile = async () => {
             if (session?.user && supabase) {
                 setLoadingProfile(true);
-                // Fetch profile from 'profiles' table
+                // Fetch all profile fields to have a complete user object
                 const { data: profileData, error } = await supabase
                     .from('profiles')
-                    .select('full_name, role')
+                    .select('*')
                     .eq('id', session.user.id)
                     .single();
 
-                // If there's an error, and it's not because the row is missing, log it.
                 if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error.message);
                     setProfile(null);
                 } else {
-                    // Construct the profile, using user_metadata as a fallback for the name.
                     const userMetadata = session.user.user_metadata;
                     const fullNameFromMeta = (userMetadata && typeof userMetadata.full_name === 'string') ? userMetadata.full_name : undefined;
-                    const fullName = profileData?.full_name || fullNameFromMeta || session.user.email || 'Usuario';
                     
-                    const role: 'ADMIN' | 'CLIENT' = profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT';
-
+                    // Construct a complete profile using data from the profiles table as the source of truth,
+                    // with fallbacks to session data for robustness.
                     const finalProfile: Profile = {
                         id: session.user.id,
-                        full_name: fullName,
-                        role: role,
+                        full_name: profileData?.full_name || fullNameFromMeta || session.user.email || 'Usuario',
+                        role: profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT',
+                        email: profileData?.email ?? session.user.email,
+                        phone: profileData?.phone ?? userMetadata?.phone,
                     };
                     setProfile(finalProfile);
                 }

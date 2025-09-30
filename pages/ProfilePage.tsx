@@ -31,7 +31,7 @@ interface ProfilePageProps {
     showAuthModal: (view: 'login' | 'register') => void;
 }
 
-const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | undefined }) => (
+const InfoItem = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | null | undefined }) => (
     <div className="flex items-center gap-4">
         <div className="bg-slate-100 p-3 rounded-full">{icon}</div>
         <div>
@@ -57,14 +57,7 @@ const GiftCard = ({ icon, title, description, buttonText, downloadLink }: { icon
 
 const ProfilePage: React.FC<ProfilePageProps> = (props) => {
     const { session, profile } = props;
-    const [phone, setPhone] = useState('');
     const [isCopied, setIsCopied] = useState(false);
-
-    useEffect(() => {
-        if (session?.user?.user_metadata?.phone) {
-            setPhone(session.user.user_metadata.phone);
-        }
-    }, [session]);
 
     if (!session || !profile) {
         return (
@@ -103,7 +96,6 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
 
     return (
         <div className="bg-slate-50 min-h-screen">
-            {/* FIX: Removed incorrect cartItemCount prop override. The correct count is already in `props`. */}
             <Header {...props} onCartClick={() => {}} />
             <main className="container mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div className="max-w-4xl mx-auto space-y-8">
@@ -117,8 +109,8 @@ const ProfilePage: React.FC<ProfilePageProps> = (props) => {
                         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 space-y-4">
                             <h2 className="text-xl font-bold text-gray-800">Tus Datos</h2>
                             <InfoItem icon={<UserIcon className="w-6 h-6 text-gray-600" />} label="Nombre Completo" value={profile.full_name} />
-                            <InfoItem icon={<AtSymbolIcon className="w-6 h-6 text-gray-600" />} label="Correo Electrónico" value={session.user.email} />
-                            <InfoItem icon={<ChatIcon className="w-6 h-6 text-gray-600" />} label="Celular" value={phone} />
+                            <InfoItem icon={<AtSymbolIcon className="w-6 h-6 text-gray-600" />} label="Correo Electrónico" value={profile.email} />
+                            <InfoItem icon={<ChatIcon className="w-6 h-6 text-gray-600" />} label="Celular" value={profile.phone} />
                         </div>
                         
                         {/* Discount Code */}

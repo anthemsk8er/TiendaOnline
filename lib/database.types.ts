@@ -384,18 +384,24 @@ export type Database = {
       };
       profiles: {
         Row: {
+          email?: string | null;
           full_name: string;
           id: string;
+          phone?: string | null;
           role: "ADMIN" | "CLIENT";
         };
         Insert: {
+          email?: string | null;
           full_name: string;
           id: string;
+          phone?: string | null;
           role?: "ADMIN" | "CLIENT";
         };
         Update: {
+          email?: string | null;
           full_name?: string;
           id?: string;
+          phone?: string | null;
           role?: "ADMIN" | "CLIENT";
         };
         Relationships: [

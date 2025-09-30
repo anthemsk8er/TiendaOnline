@@ -94,6 +94,7 @@ const WelcomePage: React.FC<WelcomePageProps> = (props) => {
                     data: {
                         full_name: trimmedFullName,
                         phone: trimmedPhone,
+                        email: trimmedEmail, // Explicitly pass email in metadata
                     },
                 },
             });

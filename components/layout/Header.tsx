@@ -12,6 +12,7 @@ interface HeaderProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
+  onProfileClick?: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
@@ -31,6 +32,7 @@ const Header: React.FC<HeaderProps> = ({
   onCatalogClick,
   onHomeClick,
   onContactFaqClick,
+  onProfileClick,
   onAdminProductUploadClick,
   onAdminProductManagementClick,
   onAdminUserManagementClick,
@@ -127,6 +129,7 @@ const Header: React.FC<HeaderProps> = ({
                 {isUserMenuOpen && (
                     <div onMouseLeave={() => setIsUserMenuOpen(false)} className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
                         <div className="px-4 py-2 text-sm text-[#1a2b63] border-b">Hola, <strong>{profile?.full_name}</strong></div>
+                        <a href="#" key="profile" onClick={createNavHandler(onProfileClick)} className="block px-4 py-2 text-sm text-[#1a2b63] hover:bg-gray-100">Mi Perfil</a>
                         {adminLinks.map(link => link.condition && <a href="#" key={link.label} onClick={link.handler} className="block px-4 py-2 text-sm text-[#1a2b63] hover:bg-gray-100">{link.label}</a>)}
                         <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-[#16a085] hover:bg-gray-100">Cerrar Sesión</a>
                     </div>

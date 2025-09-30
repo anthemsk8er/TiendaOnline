@@ -9,6 +9,7 @@ import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
 import WelcomePage from './pages/WelcomePage';
+import ProfilePage from './pages/ProfilePage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
 // FIX: Corrected import path
 import { ProductUploadPage } from './pages_admin/ProductUploadPage';
@@ -70,6 +71,9 @@ const App = () => {
             case 'welcome':
                 path = 'bienvenida';
                 break;
+            case 'profile':
+                path = 'perfil';
+                break;
             case 'admin-products':
                 path = 'admin/productos';
                 break;
@@ -127,6 +131,9 @@ const App = () => {
                         break;
                     case 'bienvenida':
                         viewState = { view: 'welcome', productSlug: null, categoryFilter: null };
+                        break;
+                    case 'perfil':
+                        viewState = { view: 'profile', productSlug: null, categoryFilter: null };
                         break;
                     case 'admin':
                         if (pathParts.length > 1) {
@@ -269,6 +276,7 @@ const App = () => {
     const handleProductClick = (slug: string) => navigate('product', null, null, slug);
     const handleContactFaqClick = () => navigate('contact-faq');
     const handleLegalClick = () => navigate('legal');
+    const handleProfileClick = () => navigate('profile');
 
     // Admin navigation
     const handleAdminProductManagementClick = () => navigate('admin-products');
@@ -427,6 +435,7 @@ const App = () => {
         onHomeClick: handleHomeClick,
         onContactFaqClick: handleContactFaqClick,
         onLegalClick: handleLegalClick,
+        onProfileClick: handleProfileClick,
         session: session,
         profile: profile,
         onLogout: handleLogout,
@@ -463,6 +472,8 @@ const App = () => {
                 return <LegalPage {...pageProps} />;
             case 'welcome':
                 return <WelcomePage {...pageProps} />;
+            case 'profile':
+                return <ProfilePage {...pageProps} />;
             case 'admin-products':
                 return <ProductManagementPage 
                     {...pageProps}

@@ -200,6 +200,17 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow, profile,
       </div>
      
 
+      <div className="flex flex-col gap-4 animate-fade-in-up delay-600">
+          <button 
+            onClick={() => onOrderNow(quantity)}
+            className="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-3 text-lg shadow-lg shadow-teal-500/30"
+          >
+              ORDENAR AHORA
+          </button>
+ 
+      </div>
+
+
 
       <ProductHighlights data={product.highlights_data} />
 
@@ -283,17 +294,7 @@ const ProductInfo: React.FC<ProductInfoProps> = ({ product, onOrderNow, profile,
         </div>
       </div>
 
-      <div className="flex flex-col gap-4 animate-fade-in-up delay-600">
-          <button 
-            onClick={() => onOrderNow(quantity)}
-            className="w-full bg-teal-600 text-white font-bold py-3 px-6 rounded-xl hover:bg-teal-700 transition-colors flex items-center justify-center gap-3 text-lg shadow-lg shadow-teal-500/30"
-          >
-              <div className="text-center">
-                <span className="block font-bold text-base leading-tight">CONTRAENTREGA</span>
-                <span className="block text-xs font-normal">Realiza tu pedido hoy</span>
-              </div>
-          </button>
-      </div>
+
       <ProductDetailsAccordion details={product.details ?? null} />
       
     </div>

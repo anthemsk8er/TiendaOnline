@@ -202,6 +202,9 @@ const App = () => {
 
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
             setSession(session);
+            if (_event === 'SIGNED_IN') {
+                navigate('profile');
+            }
             if (!session) {
                 setProfile(null);
                 setLoadingProfile(false);

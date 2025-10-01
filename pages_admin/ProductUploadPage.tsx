@@ -206,6 +206,10 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
     const [isToastVisible, setIsToastVisible] = useState(false);
     const toastTimerRef = useRef<number | null>(null);
 
+    const [newCategoryName, setNewCategoryName] = useState('');
+    const [newTagName, setNewTagName] = useState('');
+    const [newTagColor, setNewTagColor] = useState('#CCCCCC');
+
     useEffect(() => {
         const fetchRelatedData = async () => {
             if (!supabase) return;
@@ -213,11 +217,11 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
 
             const { data: categoriesData, error: categoriesError } = await supabase.from('categories').select('*');
             if(categoriesError) setMessage({ type: 'error', text: 'Error al cargar categorías: ' + categoriesError.message });
-            else setAllCategories(categoriesData || []);
+            else setAllCategories((categoriesData || []).sort((a, b) => a.name.localeCompare(b.name)));
 
             const { data: tagsData, error: tagsError } = await supabase.from('tags').select('*');
             if(tagsError) setMessage({ type: 'error', text: 'Error al cargar etiquetas: ' + tagsError.message });
-            else setAllTags(tagsData || []);
+            else setAllTags((tagsData || []).sort((a, b) => a.name.localeCompare(b.name)));
 
             if (isEditMode && productIdToEdit) {
                 const { data: productData, error: productError } = await supabase
@@ -311,6 +315,59 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
             }
         };
     }, []);
+
+    const handleCategorySelectionChange = (categoryId: string) => {
+        setSelectedCategories(prev => 
+            prev.includes(categoryId)
+                ? prev.filter(id => id !== categoryId)
+                : [...prev, categoryId]
+        );
+    };
+
+    const handleTagSelectionChange = (tagId: string) => {
+        setSelectedTags(prev => 
+            prev.includes(tagId)
+                ? prev.filter(id => id !== tagId)
+                : [...prev, tagId]
+        );
+    };
+    
+    const handleAddNewCategory = async () => {
+        const name = newCategoryName.trim();
+        if (!name || !supabase) return;
+        if (allCategories.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+            setMessage({ type: 'error', text: 'Esta categoría ya existe.' });
+            return;
+        }
+
+        const { data, error } = await supabase.from('categories').insert({ name }).select().single();
+        if (error) {
+            setMessage({ type: 'error', text: `Error al crear categoría: ${error.message}` });
+        } else if (data) {
+            setAllCategories(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+            setSelectedCategories(prev => [...prev, data.id]);
+            setNewCategoryName('');
+        }
+    };
+    
+    const handleAddNewTag = async () => {
+        const name = newTagName.trim();
+        if (!name || !supabase) return;
+        if (allTags.some(t => t.name.toLowerCase() === name.toLowerCase())) {
+            setMessage({ type: 'error', text: 'Esta etiqueta ya existe.' });
+            return;
+        }
+        
+        const { data, error } = await supabase.from('tags').insert({ name, color: newTagColor }).select().single();
+        if (error) {
+            setMessage({ type: 'error', text: `Error al crear etiqueta: ${error.message}` });
+        } else if (data) {
+            setAllTags(prev => [...prev, data].sort((a, b) => a.name.localeCompare(b.name)));
+            setSelectedTags(prev => [...prev, data.id]);
+            setNewTagName('');
+            setNewTagColor('#CCCCCC');
+        }
+    };
     
     const handleHighlightChange = (section: keyof ProductHighlightsData, index: number, field: string, value: string) => {
         setHighlightsData(prev => {
@@ -372,11 +429,6 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
         } catch (error) {
             setMessage({ type: 'error', text: `JSON inválido en el campo ${field}.` });
         }
-    };
-
-    const handleMultiSelectChange = (setter: React.Dispatch<React.SetStateAction<string[]>>) => (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const options = Array.from(e.target.selectedOptions, option => option.value);
-        setter(options);
     };
     
     const handleSubmit = async (e: React.FormEvent, andView: boolean = false) => {
@@ -558,8 +610,82 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                         <div><label htmlFor="video_url" className="block text-sm font-medium text-gray-700">URL Video (YouTube)</label><input type="url" name="video_url" value={formData.video_url ?? ''} onChange={handleInputChange} className={inputClass} /></div>
                                     </div>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div><label htmlFor="categories" className="block text-sm font-medium text-gray-700">Categorías</label><select multiple name="categories" value={selectedCategories} onChange={handleMultiSelectChange(setSelectedCategories)} className={`${inputClass} h-32`}><option value="">-- Seleccionar --</option>{allCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                                        <div><label htmlFor="tags" className="block text-sm font-medium text-gray-700">Etiquetas</label><select multiple name="tags" value={selectedTags} onChange={handleMultiSelectChange(setSelectedTags)} className={`${inputClass} h-32`}><option value="">-- Seleccionar --</option>{allTags.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</select></div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Categorías</label>
+                                            <div className="mt-1 p-3 border border-gray-300 rounded-md bg-slate-50 max-h-48 overflow-y-auto space-y-2">
+                                                {allCategories.map(category => (
+                                                    <div key={category.id} className="flex items-center">
+                                                        <input
+                                                            id={`category-${category.id}`}
+                                                            type="checkbox"
+                                                            checked={selectedCategories.includes(category.id)}
+                                                            onChange={() => handleCategorySelectionChange(category.id)}
+                                                            className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500 border-gray-300"
+                                                        />
+                                                        <label htmlFor={`category-${category.id}`} className="ml-3 text-sm text-gray-700">{category.name}</label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="mt-2 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newCategoryName}
+                                                    onChange={(e) => setNewCategoryName(e.target.value)}
+                                                    placeholder="Nueva categoría"
+                                                    className={`${inputClass} mt-0 flex-grow`}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddNewCategory}
+                                                    className="px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 transition"
+                                                >
+                                                    Añadir
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-medium text-gray-700">Etiquetas</label>
+                                            <div className="mt-1 p-3 border border-gray-300 rounded-md bg-slate-50 max-h-48 overflow-y-auto space-y-2">
+                                                {allTags.map(tag => (
+                                                    <div key={tag.id} className="flex items-center">
+                                                        <input
+                                                            id={`tag-${tag.id}`}
+                                                            type="checkbox"
+                                                            checked={selectedTags.includes(tag.id)}
+                                                            onChange={() => handleTagSelectionChange(tag.id)}
+                                                            className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500 border-gray-300"
+                                                        />
+                                                        <label htmlFor={`tag-${tag.id}`} className="ml-3 text-sm text-gray-700 flex items-center gap-2">
+                                                            {tag.name}
+                                                            <span className="w-4 h-4 rounded-full border border-gray-200" style={{ backgroundColor: tag.color }}></span>
+                                                        </label>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="mt-2 flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={newTagName}
+                                                    onChange={(e) => setNewTagName(e.target.value)}
+                                                    placeholder="Nueva etiqueta"
+                                                    className={`${inputClass} mt-0 flex-grow`}
+                                                />
+                                                <input
+                                                    type="color"
+                                                    value={newTagColor}
+                                                    onChange={(e) => setNewTagColor(e.target.value)}
+                                                    className="p-1 h-11 w-12 block bg-slate-100 border border-gray-300 cursor-pointer rounded-md"
+                                                    title="Seleccionar color"
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={handleAddNewTag}
+                                                    className="px-4 py-2 bg-gray-600 text-white text-sm font-semibold rounded-md hover:bg-gray-700 transition"
+                                                >
+                                                    Añadir
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </fieldset>
 

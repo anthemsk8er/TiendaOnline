@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import type { SupabaseProduct, Profile, Category, Tag, ProductHighlightsData, PromotionsData, PromotionCard, PromotionPill } from '../types';
@@ -134,7 +135,7 @@ const createSlug = (text: string) => text.toString().toLowerCase()
 
 
 // Reusable Image Upload Component
-const ImageUploadField = ({ label, value, onUpload, onClear }: { label: string, value: string | null | undefined, onUpload: (url: string) => void, onClear: () => void }) => {
+const ImageUploadField: React.FC<{ label: string, value: string | null | undefined, onUpload: (url: string) => void, onClear: () => void }> = ({ label, value, onUpload, onClear }) => {
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -570,7 +571,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                         <div className="lg:col-span-3">
                             {message && <div className={`p-4 rounded-md mb-6 text-white ${message.type === 'success' ? 'bg-green-500' : 'bg-red-500'}`}>{message.text}</div>}
                             <form onSubmit={(e) => handleSubmit(e, false)} className="space-y-8 bg-white p-8 rounded-lg shadow-md">
-                                <fieldset id="basic-info" ref={el => { sectionRefs.current['basic-info'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="basic-info" ref={el => { sectionRefs.current['basic-info'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Información Básica</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div><label htmlFor="name" className="block text-sm font-medium text-gray-700">Nombre del Producto *</label><input type="text" name="name" value={formData.name} onChange={handleInputChange} required className={inputClass} /></div>
@@ -586,7 +587,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     <div><label htmlFor="description" className="block text-sm font-medium text-gray-700">Descripción Corta *</label><textarea name="description" value={formData.description} onChange={handleInputChange} required className={textAreaClass}></textarea></div>
                                 </fieldset>
                                 
-                                <fieldset id="pricing-stock" ref={el => { sectionRefs.current['pricing-stock'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="pricing-stock" ref={el => { sectionRefs.current['pricing-stock'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Precio y Stock</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                                         <div><label htmlFor="price" className="block text-sm font-medium text-gray-700">Precio Regular (S/) *</label><input type="number" name="price" value={formData.price} onChange={handleInputChange} required step="0.01" className={inputClass} /></div>
@@ -595,7 +596,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
 
-                                <fieldset id="media-relations" ref={el => { sectionRefs.current['media-relations'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="media-relations" ref={el => { sectionRefs.current['media-relations'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Imágenes, Video y Relaciones</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         {imageKeys.map((key, i) => (
@@ -689,7 +690,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
 
-                                <fieldset id="highlights-section" ref={el => { sectionRefs.current['highlights-section'] = el; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="highlights-section" ref={el => { sectionRefs.current['highlights-section'] = el as HTMLElement | null; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Highlights del Producto</legend>
                                     <div className="space-y-2 p-3 bg-gray-50 rounded-md">
                                         <h4 className="font-medium text-gray-800">Estadísticas (3 recuadros)</h4>
@@ -734,7 +735,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
 
-                                <fieldset id="promotions-section" ref={el => { sectionRefs.current['promotions-section'] = el; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="promotions-section" ref={el => { sectionRefs.current['promotions-section'] = el as HTMLElement | null; }} className="space-y-6 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Promociones del Producto</legend>
                                     <div className="space-y-2">
                                         <div><label className="block text-sm font-medium text-gray-700">Título Principal</label><input type="text" value={promotionsData.title} onChange={(e) => setPromotionsData(p => ({ ...p, title: e.target.value }))} className={inputClass} /></div>
@@ -748,7 +749,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                                 {promo.pills.map((pill, p_i) => (
                                                     <div key={p_i} className="grid grid-cols-2 gap-2">
                                                         <input type="text" placeholder="Texto Píldora" value={pill.text} onChange={e => handlePillChange(i, p_i, 'text', e.target.value)} className={inputClass}/>
-                                                        <select value={pill.icon || ''} onChange={e => handlePillChange(i, p_i, 'icon', e.target.value)} className={inputClass}>
+                                                        <select value={pill.icon || ''} onChange={e => handlePillChange(i, p_i, 'icon', e.target.value as any)} className={inputClass}>
                                                             <option value="">Sin Icono</option>
                                                             <option value="check">Check</option>
                                                             <option value="sparkles">Sparkles</option>
@@ -773,7 +774,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
 
-                                <fieldset id="main-benefits" ref={el => { sectionRefs.current['main-benefits'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="main-benefits" ref={el => { sectionRefs.current['main-benefits'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Beneficios Principales (hasta 4)</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                         <div><label className="block text-sm font-medium text-gray-700">Título Beneficio 1</label><input type="text" name="benefit1_title" value={formData.benefit1_title ?? ''} onChange={handleInputChange} className={inputClass} /></div>
@@ -787,7 +788,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
                                 
-                                <fieldset id="accordion-details" ref={el => { sectionRefs.current['accordion-details'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="accordion-details" ref={el => { sectionRefs.current['accordion-details'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Acordeón de Detalles (hasta 4)</legend>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
                                         <div><label className="block text-sm font-medium text-gray-700">Título Acordeón 1</label><input type="text" name="accordion_point1_title" value={formData.accordion_point1_title ?? ''} onChange={handleInputChange} className={inputClass} /></div>
@@ -801,7 +802,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     </div>
                                 </fieldset>
                                 
-                                <fieldset id="rich-content" ref={el => { sectionRefs.current['rich-content'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="rich-content" ref={el => { sectionRefs.current['rich-content'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Contenido Enriquecido</legend>
                                     <RichTextSection
                                         initialDesktopContent={formData.desktop_content}
@@ -811,7 +812,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     />
                                 </fieldset>
 
-                                <fieldset id="json-data" ref={el => { sectionRefs.current['json-data'] = el; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
+                                <fieldset id="json-data" ref={el => { sectionRefs.current['json-data'] = el as HTMLElement | null; }} className="space-y-4 p-4 border rounded-lg scroll-mt-24">
                                     <legend className="font-semibold text-lg px-2">Datos Estructurados (JSON)</legend>
                                     <p className="text-xs text-gray-500">Pega aquí el JSON correspondiente para cada sección. Usa un validador de JSON si tienes dudas.</p>
                                     <div><label htmlFor="hero_data" className="block text-sm font-medium text-gray-700">Hero Data</label><textarea name="hero_data" value={jsonToString(formData.hero_data)} onChange={e => handleJsonChange('hero_data', e.target.value)} className={jsonTextAreaClass}></textarea></div>
@@ -822,7 +823,7 @@ export const ProductUploadPage: React.FC<ProductUploadPageProps> = ({ productIdT
                                     <div><label htmlFor="video_with_features_data" className="block text-sm font-medium text-gray-700">Video With Features Data</label><textarea name="video_with_features_data" value={jsonToString(formData.video_with_features_data)} onChange={e => handleJsonChange('video_with_features_data', e.target.value)} className={jsonTextAreaClass}></textarea></div>
                                 </fieldset>
 
-                                <div id="actions" ref={el => { sectionRefs.current['actions'] = el; }} className="flex items-center justify-between pt-6 border-t scroll-mt-24">
+                                <div id="actions" ref={el => { sectionRefs.current['actions'] = el as HTMLElement | null; }} className="flex items-center justify-between pt-6 border-t scroll-mt-24">
                                     <label className="flex items-center space-x-2">
                                         <input type="checkbox" name="is_active" checked={formData.is_active} onChange={handleInputChange} className="h-4 w-4 rounded text-pink-600 focus:ring-pink-500" />
                                         <span className="text-sm font-medium text-gray-700">Producto Activo</span>

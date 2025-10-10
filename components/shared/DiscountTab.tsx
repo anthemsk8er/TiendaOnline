@@ -4,7 +4,8 @@ import { XMarkIcon, CheckIcon, ClipboardIcon, UserIcon, ChatIcon } from '../prod
 
 // Moved ModalOverlay outside the main component to prevent re-creation on re-renders.
 // This fixes the input focus loss issue.
-const ModalOverlay = ({ onClose, children }: { onClose: () => void; children: React.ReactNode }) => (
+// FIX: Made children prop optional to resolve incorrect TypeScript error.
+const ModalOverlay = ({ onClose, children }: { onClose: () => void; children?: React.ReactNode }) => (
     <div
         className={`fixed inset-0 bg-black z-50 transition-opacity modal-enter-active bg-opacity-60 flex items-center justify-center p-4`}
         onClick={onClose}

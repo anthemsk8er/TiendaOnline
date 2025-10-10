@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Profile, CartItem, Product } from '../types';
@@ -42,7 +43,7 @@ const InfoCard = ({ icon, title, subtitle }: { icon: React.ReactNode, title: str
     </div>
 );
 
-const GiftCouponCard = ({ code, description, used, onProductClick, productSlug }: { code: string; description: string; used: boolean; onProductClick: (slug: string) => void; productSlug: string | null; }) => {
+const GiftCouponCard: React.FC<{ code: string; description: string; used: boolean; onProductClick: (slug: string) => void; productSlug: string | null; }> = ({ code, description, used, onProductClick, productSlug }) => {
     return (
         <div className={`border rounded-lg p-4 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${used ? 'bg-gray-100' : 'bg-green-50 border-green-200'}`}>
             <div className="flex-grow">
@@ -82,7 +83,7 @@ const ResourceCard = ({ icon, title, description, buttonText, downloadLink }: { 
     </div>
 );
 
-const CommunityCard = ({ name, link }: { name: string, link: string }) => (
+const CommunityCard: React.FC<{ name: string, link: string }> = ({ name, link }) => (
     <a href={link} target="_blank" rel="noopener noreferrer" className="border border-gray-200 rounded-lg p-4 bg-white shadow-sm hover:bg-gray-50 transition-colors flex flex-col items-center justify-center text-center">
         <div className="bg-green-100 p-3 rounded-full mb-3">
             <WhatsAppIcon className="w-7 h-7 text-green-600" />

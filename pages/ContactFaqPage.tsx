@@ -1,3 +1,4 @@
+
 import React, { useState, useRef } from 'react';
 // FIX: Changed import path to be relative to the root `types.ts`
 import type { CartItem, Product, Profile } from '../types';
@@ -56,7 +57,7 @@ const faqs = [
     },
 ];
 
-const FaqItem = ({ question, answer, isOpen, onToggle }: { question: string; answer: string; isOpen: boolean; onToggle: () => void; }) => {
+const FaqItem: React.FC<{ question: string; answer: string; isOpen: boolean; onToggle: () => void; }> = ({ question, answer, isOpen, onToggle }) => {
   return (
     <div className="border-b border-gray-200">
       <button onClick={onToggle} className="w-full flex justify-between items-center py-5 text-left gap-4" aria-expanded={isOpen}>

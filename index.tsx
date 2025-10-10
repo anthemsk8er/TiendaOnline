@@ -1,6 +1,6 @@
 
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
 import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import HomePage from './pages/HomePage';
@@ -50,6 +50,7 @@ const App = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [authModalView, setAuthModalView] = useState<'login' | 'register' | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
+    const sessionRef = useRef<Session | null>(null);
     
     // Navigation handler
     const navigate = (newView: string, id: string | null = null, category: string | null = null, slugData: string | null = null) => {
@@ -192,19 +193,25 @@ const App = () => {
             setLoadingProfile(false);
             return;
         }
-        
+
         const getSession = async () => {
             const { data: sessionData } = await supabase.auth.getSession();
+            sessionRef.current = sessionData.session;
             setSession(sessionData.session);
             if (!sessionData.session) setLoadingProfile(false);
         };
         getSession();
 
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setSession(session);
-            if (_event === 'SIGNED_IN') {
+            // Only navigate to profile on the initial SIGNED_IN event.
+            // This prevents redirection on tab refocus.
+            if (_event === 'SIGNED_IN' && !sessionRef.current) {
                 navigate('profile');
             }
+
+            sessionRef.current = session;
+            setSession(session);
+            
             if (!session) {
                 setProfile(null);
                 setLoadingProfile(false);

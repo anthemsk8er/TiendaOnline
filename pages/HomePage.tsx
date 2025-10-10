@@ -162,13 +162,11 @@ const HomePage: React.FC<HomePageProps> = ({
                 {/* Featured Products Section */}
                 <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 lg:py-24">
                     <div className="text-center mb-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-[#1a2b63] animate-fade-in-up">Ofertas del Mes</h2>
-                        <p className="mt-2 text-gray-600 animate-fade-in-up delay-100">Una selección de nuestros mejores productos para ti.</p>
+                        <h2 className="text-3xl md:text-4xl font-bold text-[#1a2b63] animate-fade-in-up">Novedades del Catálogo</h2>
+                        <p className="mt-2 text-gray-600 animate-fade-in-up delay-100">Los 4 productos más recientes añadidos a nuestra tienda.</p>
                     </div>
                     <ProductsGrid
-                    
-                        tagFilter="Oferta"
-                        limit={6}
+                        limit={4}
                         onProductClick={onProductClick}
                         onAddToCart={onAddToCart}
                         onCartOpen={handleOpenCart}

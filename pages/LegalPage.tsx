@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import type { Profile } from '../types';
@@ -105,7 +100,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
 
             <div className="lg:col-span-3 mt-8 lg:mt-0 prose max-w-none prose-h2:font-bold prose-h2:text-2xl prose-h2:mt-12 prose-h2:mb-4 prose-h3:font-semibold prose-h3:text-xl prose-h3:mt-6 prose-h3:mb-3 prose-p:leading-relaxed prose-a:text-pink-600 prose-strong:text-gray-800">
                 
-              <section id="terms" ref={(el) => { sectionsRef.current['terms'] = el; }} className="scroll-mt-24">
+              <section id="terms" ref={(el) => { sectionsRef.current['terms'] = el as HTMLElement | null; }} className="scroll-mt-24">
                   <h2>1. TÉRMINOS Y CONDICIONES</h2>
                   <h3>1.1 INFORMACIÓN GENERAL</h3>
                   <p><strong>KetoShop</strong> es una tienda online especializada en productos para el estilo de vida keto y suplementos nutricionales. Al acceder y utilizar nuestro sitio web, aceptas cumplir con estos términos y condiciones.</p>
@@ -159,7 +154,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                   <p>Nos reservamos el derecho de modificar estos términos en cualquier momento. Los cambios serán publicados en nuestro sitio web y entrarán en vigor inmediatamente.</p>
               </section>
 
-              <section id="privacy" ref={(el) => { sectionsRef.current['privacy'] = el; }} className="scroll-mt-24">
+              <section id="privacy" ref={(el) => { sectionsRef.current['privacy'] = el as HTMLElement | null; }} className="scroll-mt-24">
                   <h2>2. POLÍTICA DE PRIVACIDAD</h2>
                   <h3>2.1 INFORMACIÓN QUE RECOPILAMOS</h3>
                   <p><strong>Información personal:</strong></p>
@@ -228,7 +223,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                   </ul>
               </section>
 
-              <section id="shipping" ref={(el) => { sectionsRef.current['shipping'] = el; }} className="scroll-mt-24">
+              <section id="shipping" ref={(el) => { sectionsRef.current['shipping'] = el as HTMLElement | null; }} className="scroll-mt-24">
                   <h2>3. POLÍTICA DE ENVÍOS</h2>
                   <h3>3.1 COBERTURA</h3>
                   <p><strong>¡ENVÍOS A TODO EL PERÚ!</strong></p>
@@ -285,7 +280,7 @@ const LegalPage: React.FC<LegalPageProps> = (props) => {
                   <p>Contacta inmediatamente a nuestro equipo de atención al cliente.</p>
               </section>
               
-              <section id="returns" ref={(el) => { sectionsRef.current['returns'] = el; }} className="scroll-mt-24">
+              <section id="returns" ref={(el) => { sectionsRef.current['returns'] = el as HTMLElement | null; }} className="scroll-mt-24">
                   <h2>4. POLÍTICA DE DEVOLUCIONES</h2>
                   <h3>4.1 GARANTÍA DE SATISFACCIÓN</h3>
                   <p>Estamos comprometidos con tu satisfacción. Ofrecemos devoluciones bajo ciertas condiciones para garantizar que tengas la mejor experiencia de compra.</p>

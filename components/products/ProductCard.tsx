@@ -1,21 +1,22 @@
-
-
 import React from 'react';
-import type { SupabaseProduct, Product } from '../../types';
+import type { SupabaseProduct, Product, Profile } from '../../types';
 
 interface ProductCardProps {
   product: SupabaseProduct;
-  onProductClick: (id: string, name: string) => void;
+  onProductClick: (slug: string) => void;
   onAddToCart: (product: Product, quantity: number) => void;
   onCartOpen?: () => void;
+  profile?: Profile | null;
+  onEditProduct?: (id: string) => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAddToCart, onCartOpen }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAddToCart, onCartOpen, profile, onEditProduct }) => {
   const handleAddToCartClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent onProductClick from firing when button is clicked
 
     const productForCart: Product = {
       id: product.id,
+      slug: product.slug,
       vendor: product.vendor,
       title: product.name,
       price: product.discount_price ?? product.price,
@@ -24,6 +25,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
       rating: 5, // Default value as not in Supabase
       reviewCount: 0, // Default value
       description: product.description,
+      // FIX: Add missing properties to satisfy the Product type.
+      main_benefits: [],
+      details: [],
       benefits: [], // Default value
       ingredients: [], // Default value
       usage: '', // Default value
@@ -38,7 +42,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
   return (
     <div 
       className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 cursor-pointer group flex flex-col"
-      onClick={() => onProductClick(product.id, product.name)}
+      onClick={() => product.slug && onProductClick(product.slug)}
       aria-label={`View details for ${product.name}`}
     >
       <div className="relative">
@@ -118,6 +122,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAd
                 className="w-full mt-3 bg-[#16a085] text-white px-3 py-2 rounded-lg hover:bg-[#117a65] transition-colors duration-200 text-sm font-bold disabled:bg-gray-300 disabled:cursor-not-allowed">
                 Agregar al Carrito
             </button>
+            {profile?.role === 'ADMIN' && onEditProduct && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEditProduct(product.id);
+                }}
+                className="w-full mt-2 bg-indigo-600 text-white px-3 py-2 rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-sm font-bold"
+              >
+                Editar Producto
+              </button>
+            )}
         </div>
       </div>
     </div>

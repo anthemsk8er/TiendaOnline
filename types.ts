@@ -1,221 +1,185 @@
+// FIX: Create types.ts to define shared types used across the application.
+import type { Database } from './lib/database.types';
 
+// From Supabase schema, but simplified for frontend use
+export type SupabaseProduct = Database['public']['Tables']['products']['Row'] & {
+  categories: Category[];
+  tags: Tag[];
+};
 
-import type { Json as SupabaseJson } from './lib/database.types';
-
-export type Json = SupabaseJson;
-
-export interface Profile {
+export type Product = {
   id: string;
-  full_name: string;
-  role: 'ADMIN' | 'CLIENT';
-}
+  slug: string | null;
+  vendor: string;
+  title: string;
+  price: number;
+  originalPrice?: number | null;
+  images: string[];
+  rating: number;
+  reviewCount: number;
+  description: string;
+  main_benefits: { title: string; description: string }[];
+  details: AccordionItem[] | null; // For the accordion
+  stock: number;
+  benefits?: string[];
+  ingredients?: string[];
+  usage?: string;
+  hero_data?: HeroData | null;
+  features_data?: FeaturesData | null;
+  benefits_data?: BenefitsData | null;
+  comparison_data?: ComparisonData | null;
+  faq_data?: FaqData | null;
+  video_with_features_data?: VideoWithFeaturesData | null;
+  desktop_content?: string | null;
+  mobile_content?: string | null;
+  highlights_data?: ProductHighlightsData | null;
+  promotions_data?: PromotionsData | null;
+};
 
+export type CartItem = {
+  id: string;
+  vendor: string;
+  title: string;
+  price: number;
+  originalPrice: number | null;
+  image: string;
+  quantity: number;
+};
+
+export type Profile = Database['public']['Tables']['profiles']['Row'];
+
+export type Review = Database['public']['Tables']['reviews']['Row'];
+
+export type RelatedProduct = {
+  id: string;
+  title: string;
+  price: number;
+  image: string;
+};
+
+export type Category = Database['public']['Tables']['categories']['Row'];
+export type Tag = Database['public']['Tables']['tags']['Row'];
+
+export type Order = Database['public']['Tables']['orders']['Row'];
+export type DiscountCode = Database['public']['Tables']['discount_codes']['Row'];
+
+// Sectional Data Types
 export interface AccordionItem {
   title: string;
   content: string;
 }
 
-// Data structure for the Hero section
 export interface HeroBenefit {
-  icon: string;
-  title:string;
+    icon: string;
+    title: string;
 }
 export interface HeroData {
-  title: string;
-  subtitle: string;
-  imageUrl: string | null;
-  benefits: HeroBenefit[];
+    title: string;
+    subtitle: string;
+    imageUrl: string;
+    benefits: HeroBenefit[];
 }
 
-// Data structure for the Features section
-export interface FeatureBenefit {
-  icon: string;
-  title: string;
-  description: string;
+export interface Feature {
+    icon: string;
+    title: string;
+    description: string;
 }
 export interface FeaturesData {
-  title: string;
-  subtitle: string;
-  imageUrl: string | null;
-  features: FeatureBenefit[];
+    title: string;
+    subtitle: string;
+    imageUrl: string;
+    features: Feature[];
 }
 
-// Data structure for the Benefits section
-export interface BenefitItem {
-  icon: string;
-  title: string;
-  description: string;
+export interface Benefit {
+    icon: string;
+    title: string;
+    description: string;
 }
 export interface BenefitsData {
-  backgroundImageUrl: string | null;
-  benefits: BenefitItem[];
+    backgroundImageUrl: string;
+    benefits: Benefit[];
 }
 
-// Data structure for the Comparison Table section
 export interface ComparisonFeature {
-  feature: string;
-  ours: boolean;
-  theirs: boolean;
+    feature: string;
+    ours: boolean;
+    theirs: boolean;
 }
 export interface ComparisonData {
-  title: string;
-  subtitle: string;
-  features: ComparisonFeature[];
+    title: string;
+    subtitle: string;
+    features: ComparisonFeature[];
 }
 
-// Data structure for the FAQ section
 export interface FaqItem {
-  question: string;
-  answer: string;
+    question: string;
+    answer: string;
 }
 export interface FaqData {
-  title: string;
-  items: FaqItem[];
+    title: string;
+    items: FaqItem[];
 }
 
-// Data structure for the VideoWithFeatures section
-export interface VideoFeatureItem {
+export interface VideoFeature {
   icon: string;
   title: string;
   subtitle: string;
 }
+
 export interface VideoWithFeaturesData {
   title: string;
   videoUrl: string;
-  features: VideoFeatureItem[];
+  features: VideoFeature[];
 }
 
+// NEW: Types for the Product Highlights section
+export interface ProductHighlightStat {
+  value: string;
+  label: string;
+  sublabel: string;
+}
 
-export interface Product {
-  id: string;
-  vendor: string;
+export interface ProductHighlightInfoPoint {
+  icon_url: string;
   title: string;
+  subtitle: string;
+}
+
+export interface ProductHighlightGuarantee {
+  text: string;
+}
+
+export interface ProductHighlightsData {
+  stats: ProductHighlightStat[];
+  info_points: ProductHighlightInfoPoint[];
+  guarantees: ProductHighlightGuarantee[];
+}
+
+// NEW: Types for the Product Promotions section to support the new design.
+export interface PromotionPill {
+  text: string;
+  icon?: 'check' | 'sparkles' | null;
+}
+
+export interface PromotionCard {
+  id: number;
+  isBestDeal: boolean;
+  pills: PromotionPill[];
+  imageUrl: string | null;
   price: number;
-  originalPrice?: number | null;
-  rating: number;
-  reviewCount: number;
-  images: string[];
-  description: string;
-  benefits: string[];
-  ingredients: string[];
-  usage: string;
-  stock: number;
-  videoUrl?: string;
-  details?: AccordionItem[];
-  heroData?: HeroData;
-  featuresData?: FeaturesData;
-  benefitsData?: BenefitsData;
-  comparison_data?: ComparisonData | null;
-  faqData?: FaqData | null;
-  videoWithFeaturesData?: VideoWithFeaturesData | null;
-}
-
-export interface Review {
-  id: string;
-  created_at: string;
-  product_id: string;
-  user_id: string;
-  author_name: string;
-  author_province: string;
-  comment: string;
-  image_url: string | null;
-  rating: number;
-  is_approved: boolean;
-  products?: { name: string } | null; // For joining product name
-}
-
-export interface RelatedProduct {
-  id: string;
-  image: string;
+  originalPrice: number | null;
   title: string;
-  price: number;
+  subtitle: string | null;
+  pricePerUnitText: string | null;
+  buttonText: string;
+  footerText: string | null;
 }
 
-export interface CartItem {
-  id: string;
-  vendor: string;
-  title:string;
-  price: number;
-  originalPrice?: number | null;
-  image: string;
-  quantity: number;
-}
-
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-}
-
-export interface SupabaseProduct {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  discount_price: number | null;
-  image_url: string;
-  image_url_2?: string | null;
-  image_url_3?: string | null;
-  image_url_4?: string | null;
-  video_url?: string;
-  stock: number;
-  vendor: string;
-  is_active: boolean;
-  categories: Category[];
-  tags: Tag[];
-  accordion_point1_title: string | null;
-  accordion_point1_content: string | null;
-  accordion_point2_title: string | null;
-  accordion_point2_content: string | null;
-  accordion_point3_title: string | null;
-  accordion_point3_content: string | null;
-  accordion_point4_title: string | null;
-  accordion_point4_content: string | null;
-  hero_data?: Json | null;
-  features_data?: Json | null;
-  benefits_data?: Json | null;
-  comparison_data?: Json | null;
-  faq_data?: Json | null;
-  video_with_features_data?: Json | null;
-}
-
-export interface Order {
-  id: string;
-  created_at: string;
-  full_name: string;
-  email: string;
-  phone: string;
-  address: string;
-  reference?: string | null;
-  department: string;
-  province: string;
-  district: string;
-  shipping_method?: string | null;
-  payment_method: string;
-  cart_items: Json;
-  upsell_included: boolean;
-  total_amount: number;
-  discount_code?: string | null;
-  discount_amount?: number | null;
-}
-
-export interface DiscountCode {
-    id: string;
-    code: string;
-    discount_type: 'percentage' | 'fixed_amount';
-    discount_value: number;
-    limitation_type: 'date_range' | 'usage_limit';
-    start_date: string | null;
-    end_date: string | null;
-    usage_limit: number | null;
-    times_used: number;
-    scope: 'cart' | 'product';
-    product_id: string | null;
-    is_active: boolean;
-    created_at: string;
+export interface PromotionsData {
+  title: string;
+  subtitle: string;
+  countdownEndDate: string; // ISO 8601 format date string
+  promotions: PromotionCard[];
 }

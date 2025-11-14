@@ -1,13 +1,19 @@
 
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import ReactDOM from 'react-dom/client';
+import { GoogleReCaptchaProvider } from 'react-google-recaptcha-v3';
 import HomePage from './pages/HomePage';
 import ProductCatalog from './pages/ProductCatalog';
+// FIX: Corrected import path
 import ProductDetailPage from './pages/ProductDetailPage';
 import ContactFaqPage from './pages/ContactFaqPage';
 import NotFoundPage from './pages/NotFoundPage';
 import LegalPage from './pages/LegalPage';
+import WelcomePage from './pages/WelcomePage';
+import ProfilePage from './pages/ProfilePage';
 import ProductManagementPage from './pages_admin/ProductManagementPage';
+// FIX: Corrected import path
 import { ProductUploadPage } from './pages_admin/ProductUploadPage';
 import UserManagementPage from './pages_admin/UserManagementPage';
 import OrdersPage from './pages_admin/OrdersPage';
@@ -16,20 +22,24 @@ import DiscountCodeFormPage from './pages_admin/DiscountCodeFormPage';
 import ReviewManagementPage from './pages_admin/ReviewManagementPage';
 import AuthModal from './components/auth/AuthModal';
 import { supabase } from './lib/supabaseClient';
-import type { Product, CartItem, Profile } from './types';
+// FIX: Corrected import path
+import type { Product, CartItem, Profile, PromotionCard } from './types';
 import type { Session, PostgrestSingleResponse } from '@supabase/supabase-js';
-import DiscountTab from './components/shared/DiscountTab';
+
 
 interface ViewState {
     view: string;
-    productId: string | null;
+    productSlug: string | null;
     categoryFilter: string | null;
 }
+
+// IMPORTANT: Replace with your actual reCAPTCHA v3 Site Key
+const RECAPTCHA_V3_SITE_KEY = '6LfaSNkrAAAAANs2uvdGDvomsM7wXlpubYtrNqGt';
 
 const App = () => {
     const [currentView, setCurrentView] = useState<ViewState>({
         view: 'home',
-        productId: null,
+        productSlug: null,
         categoryFilter: null,
     });
     const [editingProductId, setEditingProductId] = useState<string | null>(null);
@@ -40,16 +50,10 @@ const App = () => {
     const [profile, setProfile] = useState<Profile | null>(null);
     const [authModalView, setAuthModalView] = useState<'login' | 'register' | null>(null);
     const [loadingProfile, setLoadingProfile] = useState(true);
-
+    const sessionRef = useRef<Session | null>(null);
+    
     // Navigation handler
     const navigate = (newView: string, id: string | null = null, category: string | null = null, slugData: string | null = null) => {
-        const createSlug = (text: string) => text.toString().toLowerCase()
-            .replace(/\s+/g, '-')           // Replace spaces with -
-            .replace(/[^\w\-]+/g, '')       // Remove all non-word chars
-            .replace(/\-\-+/g, '-')         // Replace multiple - with single -
-            .replace(/^-+/, '')             // Trim - from start of text
-            .replace(/-+$/, '');            // Trim - from end of text
-        
         let path = ''; // Paths for hash routing don't need a leading slash
         switch (newView) {
             case 'home':
@@ -59,13 +63,19 @@ const App = () => {
                 path = category ? `catalogo/${encodeURIComponent(category)}` : 'catalogo';
                 break;
             case 'product':
-                path = slugData ? `productos/${createSlug(slugData)}/${id}` : `productos/${id}`;
+                path = `productos/${slugData}`;
                 break;
             case 'contact-faq':
                 path = 'ayuda';
                 break;
             case 'legal':
                 path = 'legal';
+                break;
+            case 'welcome':
+                path = 'bienvenida';
+                break;
+            case 'profile':
+                path = 'perfil';
                 break;
             case 'admin-products':
                 path = 'admin/productos';
@@ -102,25 +112,31 @@ const App = () => {
             const path = window.location.hash.substring(1); // Remove '#'
             const pathParts = path.split('/').filter(p => p);
 
-            let viewState: ViewState = { view: 'home', productId: null, categoryFilter: null };
+            let viewState: ViewState = { view: 'home', productSlug: null, categoryFilter: null };
 
             if (pathParts.length > 0) {
                 const view = pathParts[0];
                 switch (view) {
                     case 'catalogo':
-                        viewState = { view: 'catalog', productId: null, categoryFilter: pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null };
+                        viewState = { view: 'catalog', productSlug: null, categoryFilter: pathParts.length > 1 ? decodeURIComponent(pathParts[1]) : null };
                         break;
                     case 'productos':
                         if (pathParts.length > 1) {
-                            const id = pathParts.length > 2 ? pathParts[2] : pathParts[1];
-                            viewState = { view: 'product', productId: id, categoryFilter: null };
+                            const slug = pathParts[1];
+                            viewState = { view: 'product', productSlug: slug, categoryFilter: null };
                         }
                         break;
                     case 'ayuda':
-                        viewState = { view: 'contact-faq', productId: null, categoryFilter: null };
+                        viewState = { view: 'contact-faq', productSlug: null, categoryFilter: null };
                         break;
                     case 'legal':
-                        viewState = { view: 'legal', productId: null, categoryFilter: null };
+                        viewState = { view: 'legal', productSlug: null, categoryFilter: null };
+                        break;
+                    case 'bienvenida':
+                        viewState = { view: 'welcome', productSlug: null, categoryFilter: null };
+                        break;
+                    case 'perfil':
+                        viewState = { view: 'profile', productSlug: null, categoryFilter: null };
                         break;
                     case 'admin':
                         if (pathParts.length > 1) {
@@ -128,34 +144,34 @@ const App = () => {
                             const id = pathParts.length > 3 ? pathParts[3] : null;
                              if (subView === 'productos') {
                                 if (pathParts[2] === 'nuevo') {
-                                    viewState = { view: 'admin-upload', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-upload', productSlug: null, categoryFilter: null };
                                 } else if (pathParts[2] === 'editar' && id) {
-                                    viewState = { view: 'admin-upload', productId: id, categoryFilter: null };
+                                    viewState = { view: 'admin-upload', productSlug: null, categoryFilter: null };
                                     setEditingProductId(id);
                                 } else {
-                                    viewState = { view: 'admin-products', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-products', productSlug: null, categoryFilter: null };
                                 }
                             } else if (subView === 'usuarios') {
-                                viewState = { view: 'admin-users', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-users', productSlug: null, categoryFilter: null };
                             } else if (subView === 'ordenes') {
-                                viewState = { view: 'admin-orders', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-orders', productSlug: null, categoryFilter: null };
                             } else if (subView === 'resenas') {
-                                viewState = { view: 'admin-reviews', productId: null, categoryFilter: null };
+                                viewState = { view: 'admin-reviews', productSlug: null, categoryFilter: null };
                             } else if (subView === 'descuentos') {
                                 if (pathParts[2] === 'nuevo') {
-                                    viewState = { view: 'admin-discount-form', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-discount-form', productSlug: null, categoryFilter: null };
                                 } else if (pathParts[2] === 'editar' && id) {
-                                    viewState = { view: 'admin-discount-form', productId: id, categoryFilter: null };
+                                    viewState = { view: 'admin-discount-form', productSlug: null, categoryFilter: null };
                                     setEditingDiscountCodeId(id);
                                 } else {
-                                    viewState = { view: 'admin-discounts', productId: null, categoryFilter: null };
+                                    viewState = { view: 'admin-discounts', productSlug: null, categoryFilter: null };
                                 }
                             }
                         }
                         break;
                     default:
                         // The render function will handle the 404 case if the view doesn't exist
-                        viewState = { view: view, productId: null, categoryFilter: null };
+                        viewState = { view: view, productSlug: null, categoryFilter: null };
                 }
             }
             
@@ -177,16 +193,25 @@ const App = () => {
             setLoadingProfile(false);
             return;
         }
-        
+
         const getSession = async () => {
             const { data: sessionData } = await supabase.auth.getSession();
+            sessionRef.current = sessionData.session;
             setSession(sessionData.session);
             if (!sessionData.session) setLoadingProfile(false);
         };
         getSession();
 
         const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+            // Only navigate to profile on the initial SIGNED_IN event.
+            // This prevents redirection on tab refocus.
+            if (_event === 'SIGNED_IN' && !sessionRef.current) {
+                navigate('profile');
+            }
+
+            sessionRef.current = session;
             setSession(session);
+            
             if (!session) {
                 setProfile(null);
                 setLoadingProfile(false);
@@ -202,29 +227,31 @@ const App = () => {
         const getProfile = async () => {
             if (session?.user && supabase) {
                 setLoadingProfile(true);
-                // Fetch profile from 'profiles' table
+                // Fetch all profile fields to have a complete user object
                 const { data: profileData, error } = await supabase
                     .from('profiles')
-                    .select('full_name, role')
+                    .select('*')
                     .eq('id', session.user.id)
                     .single();
 
-                // If there's an error, and it's not because the row is missing, log it.
                 if (error && error.code !== 'PGRST116') {
                     console.error('Error fetching profile:', error.message);
                     setProfile(null);
                 } else {
-                    // Construct the profile, using user_metadata as a fallback for the name.
                     const userMetadata = session.user.user_metadata;
                     const fullNameFromMeta = (userMetadata && typeof userMetadata.full_name === 'string') ? userMetadata.full_name : undefined;
-                    const fullName = profileData?.full_name || fullNameFromMeta || session.user.email || 'Usuario';
                     
-                    const role: 'ADMIN' | 'CLIENT' = profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT';
-
+                    // Construct a complete profile using data from the profiles table as the source of truth,
+                    // with fallbacks to session data for robustness.
                     const finalProfile: Profile = {
                         id: session.user.id,
-                        full_name: fullName,
-                        role: role,
+                        full_name: profileData?.full_name || fullNameFromMeta || session.user.email || 'Usuario',
+                        role: profileData?.role === 'ADMIN' ? 'ADMIN' : 'CLIENT',
+                        email: profileData?.email ?? session.user.email,
+                        phone: profileData?.phone ?? userMetadata?.phone,
+                        gift_coupon_1_used: profileData?.gift_coupon_1_used ?? false,
+                        gift_coupon_2_used: profileData?.gift_coupon_2_used ?? false,
+                        gift_coupon_3_used: profileData?.gift_coupon_3_used ?? false,
                     };
                     setProfile(finalProfile);
                 }
@@ -260,9 +287,10 @@ const App = () => {
 
     const handleHomeClick = () => navigate('home');
     const handleCatalogClick = (category?: string) => navigate('catalog', null, category || null);
-    const handleProductClick = (id: string, name: string) => navigate('product', id, null, name);
+    const handleProductClick = (slug: string) => navigate('product', null, null, slug);
     const handleContactFaqClick = () => navigate('contact-faq');
     const handleLegalClick = () => navigate('legal');
+    const handleProfileClick = () => navigate('profile');
 
     // Admin navigation
     const handleAdminProductManagementClick = () => navigate('admin-products');
@@ -274,6 +302,7 @@ const App = () => {
     const handleAdminOrdersClick = () => navigate('admin-orders');
     const handleAdminDiscountManagementClick = () => navigate('admin-discounts');
     const handleAdminReviewManagementClick = () => navigate('admin-reviews');
+    const handleAdminWelcomePageClick = () => navigate('welcome');
     const handleAdminDiscountFormClick = () => {
         setEditingDiscountCodeId(null);
         navigate('admin-discount-form');
@@ -346,6 +375,49 @@ const App = () => {
     const handleRemoveFromCart = (productId: string) => {
         setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
     };
+    
+    const handleSelectPromotionAndAddToCart = (product: Product, promotion: PromotionCard) => {
+        const quantityMatch = promotion.title.match(/\d+/);
+        const quantity = quantityMatch ? parseInt(quantityMatch[0], 10) : 1;
+        if (quantity <= 0) return;
+
+        const newUnitPrice = promotion.price / quantity;
+        
+        setCartItems(prevItems => {
+            const existingItemIndex = prevItems.findIndex(item => item.id === product.id);
+
+            if (existingItemIndex > -1) {
+                // Item exists, update it
+                const newItems = [...prevItems];
+                const updatedItem = { 
+                    ...newItems[existingItemIndex], 
+                    quantity: quantity, 
+                    price: newUnitPrice 
+                };
+
+                // Preserve the very first price as the original price
+                if (newItems[existingItemIndex].originalPrice == null) {
+                     // The originalPrice from the product object is the base single-unit price before any discounts
+                     updatedItem.originalPrice = product.originalPrice ?? product.price;
+                }
+                
+                newItems[existingItemIndex] = updatedItem;
+                return newItems;
+            } else {
+                // Item does not exist, add it
+                const newCartItem: CartItem = {
+                    id: product.id,
+                    vendor: product.vendor,
+                    title: product.title,
+                    price: newUnitPrice,
+                    originalPrice: product.originalPrice ?? product.price, // Base price before promotion
+                    image: product.images[0],
+                    quantity: quantity
+                };
+                return [...prevItems, newCartItem];
+            }
+        });
+    };
 
     // Auth Handlers
     const handleLogout = async () => {
@@ -377,6 +449,7 @@ const App = () => {
         onHomeClick: handleHomeClick,
         onContactFaqClick: handleContactFaqClick,
         onLegalClick: handleLegalClick,
+        onProfileClick: handleProfileClick,
         session: session,
         profile: profile,
         onLogout: handleLogout,
@@ -387,6 +460,8 @@ const App = () => {
         onAdminOrdersClick: handleAdminOrdersClick,
         onAdminDiscountManagementClick: handleAdminDiscountManagementClick,
         onAdminReviewManagementClick: handleAdminReviewManagementClick,
+        onAdminWelcomePageClick: handleAdminWelcomePageClick,
+        onSelectPromotionAndAddToCart: handleSelectPromotionAndAddToCart,
     };
 
     const renderView = () => {
@@ -400,15 +475,19 @@ const App = () => {
 
         switch (currentView.view) {
             case 'home':
-                return <HomePage {...pageProps} />;
+                return <HomePage {...pageProps} onEditProduct={handleEditProduct} />;
             case 'catalog':
-                return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} />;
+                return <ProductCatalog {...pageProps} category={currentView.categoryFilter || undefined} onEditProduct={handleEditProduct} />;
             case 'product':
-                return <ProductDetailPage {...pageProps} productId={currentView.productId} />;
+                return <ProductDetailPage {...pageProps} productSlug={currentView.productSlug} onEditProduct={handleEditProduct} />;
             case 'contact-faq':
                 return <ContactFaqPage {...pageProps} />;
             case 'legal':
                 return <LegalPage {...pageProps} />;
+            case 'welcome':
+                return <WelcomePage {...pageProps} />;
+            case 'profile':
+                return <ProfilePage {...pageProps} />;
             case 'admin-products':
                 return <ProductManagementPage 
                     {...pageProps}
@@ -421,6 +500,7 @@ const App = () => {
                     {...pageProps}
                     productIdToEdit={editingProductId} 
                     onFinished={handleUploadFinished}
+                    onViewProduct={handleProductClick}
                     />;
             case 'admin-users':
                  return <UserManagementPage {...pageProps} />;
@@ -449,7 +529,6 @@ const App = () => {
         <>
             {renderView()}
             {authModalView && <AuthModal view={authModalView} onClose={closeAuthModal} />}
-            <DiscountTab />
         </>
     );
 };
@@ -459,7 +538,9 @@ if (rootElement) {
     const root = ReactDOM.createRoot(rootElement);
     root.render(
         <React.StrictMode>
-            <App />
+            <GoogleReCaptchaProvider reCaptchaKey={RECAPTCHA_V3_SITE_KEY}>
+                <App />
+            </GoogleReCaptchaProvider>
         </React.StrictMode>
     );
 }

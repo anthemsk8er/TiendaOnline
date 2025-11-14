@@ -16,6 +16,7 @@ interface UserManagementPageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   session: Session | null;
   profile: Profile | null;
   onLogout: () => void;

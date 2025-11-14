@@ -27,6 +27,7 @@ export const iconMap: { [key: string]: React.FC<any> } = {
     'MapPinIcon': Icons.MapPinIcon,
     'AtSymbolIcon': Icons.AtSymbolIcon,
     'WalletIcon': Icons.WalletIcon,
+    'SparklesIcon': Icons.SparklesIcon,
 };
 
 export const iconKeys = Object.keys(iconMap).sort();

@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 
 export const StarIcon: React.FC<{className?: string}> = ({ className }) => (
@@ -292,5 +290,41 @@ export const GlobeAltIcon: React.FC<{className?: string; strokeWidth?: number}> 
 export const ShieldCheckIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l2.25 2.25 4.5-4.5m-6.75 2.25c.621 1.168 1.895 2 3.375 2 1.48 0 2.754-.832 3.375-2M21 12c0 4.556-3.046 8.41-7.258 9.497a18.274 18.274 0 01-1.332.222c-.52.072-1.05.111-1.59.135a18.636 18.636 0 01-1.59-.135c-.47-.058-.93-.14-1.332-.222C6.046 20.41 3 16.556 3 12V6.321c0-1.04.85-1.9 1.89-1.928a17.848 17.848 0 011.66-.098 18.274 18.274 0 014.11 0c.58.04 1.14.12 1.66.218 1.04.188 1.89 1.088 1.89 2.119V12Z" />
+    </svg>
+);
+
+export const SparklesIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth=1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09zM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456zM16.898 20.562 16.5 21.75l-.398-1.188a3.375 3.375 0 0 0-2.455-2.456L12.75 18l1.188-.398a3.375 3.375 0 0 0 2.455-2.456L16.5 14.25l.398 1.188a3.375 3.375 0 0 0 2.456 2.456L20.25 18l-1.188.398a3.375 3.375 0 0 0-2.456 2.456z" />
+    </svg>
+);
+
+export const ShareIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 0-2.186 2.25 2.25 0 0 0 0 2.186Zm0-12.814a2.25 2.25 0 1 0 0-2.186 2.25 2.25 0 0 0 0 2.186Z" />
+    </svg>
+);
+
+export const GiftIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M21 11.25v8.25a1.5 1.5 0 01-1.5 1.5H4.5a1.5 1.5 0 01-1.5-1.5v-8.25M12 4.875A2.625 2.625 0 1014.625 7.5H9.375A2.625 2.625 0 1012 4.875zM21 11.25H3v-3.75a1.5 1.5 0 011.5-1.5h15a1.5 1.5 0 011.5 1.5v3.75z" />
+    </svg>
+);
+
+export const LockClosedIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 0 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+    </svg>
+);
+
+export const DownloadIcon: React.FC<{className?: string; strokeWidth?: number}> = ({ className = "w-6 h-6", strokeWidth = 1.5 }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={strokeWidth} stroke="currentColor" className={className}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+    </svg>
+);
+
+export const WhatsAppIcon: React.FC<{className?: string;}> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 24 24" fill="currentColor">
+        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.371-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01s-.521.074-.792.372c-.272.296-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.626.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
     </svg>
 );

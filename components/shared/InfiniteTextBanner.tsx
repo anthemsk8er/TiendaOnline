@@ -3,7 +3,7 @@ import React from 'react';
 
 interface InfiniteTextBannerProps {
   texts: string[];
-  colorScheme?: 'purple' | 'red' | 'green' | 'yellow' | 'blue' | 'dark';
+  colorScheme?: 'purple' | 'red' | 'green' | 'yellow' | 'blue' | 'dark' | 'light';
   speed?: 'slow' | 'normal' | 'fast';
   className?: string;
 }
@@ -15,6 +15,7 @@ const colorSchemes = {
   yellow: 'bg-[#90b8f8] text-[#1a2b63]',
   blue: 'bg-[#2952a3] text-white',
   dark: 'bg-[#1a2b63] text-white',
+  light: 'bg-gray-100 text-[#1a2b63]',
 };
 
 const speeds = {

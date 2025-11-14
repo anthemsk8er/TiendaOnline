@@ -34,11 +34,13 @@ export type Database = {
           id: string;
           is_active: boolean;
           limitation_type: "date_range" | "usage_limit";
+          minimum_purchase_amount: number | null;
           product_id: string | null;
           scope: "cart" | "product";
           start_date: string | null;
           times_used: number;
           usage_limit: number | null;
+          usage_limit_per_user: number | null;
         };
         Insert: {
           code: string;
@@ -49,11 +51,13 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           limitation_type: "date_range" | "usage_limit";
+          minimum_purchase_amount?: number | null;
           product_id?: string | null;
           scope: "cart" | "product";
           start_date?: string | null;
           times_used?: number;
           usage_limit?: number | null;
+          usage_limit_per_user?: number | null;
         };
         Update: {
           code?: string;
@@ -64,11 +68,13 @@ export type Database = {
           id?: string;
           is_active?: boolean;
           limitation_type?: "date_range" | "usage_limit";
+          minimum_purchase_amount?: number | null;
           product_id?: string | null;
           scope?: "cart" | "product";
           start_date?: string | null;
           times_used?: number;
           usage_limit?: number | null;
+          usage_limit_per_user?: number | null;
         };
         Relationships: [
           {
@@ -131,6 +137,7 @@ export type Database = {
           shipping_method: string | null;
           total_amount: number;
           upsell_included: boolean;
+          user_id: string | null;
         };
         Insert: {
           address: string;
@@ -150,6 +157,7 @@ export type Database = {
           shipping_method?: string | null;
           total_amount: number;
           upsell_included: boolean;
+          user_id?: string | null;
         };
         Update: {
           address?: string;
@@ -169,8 +177,17 @@ export type Database = {
           shipping_method?: string | null;
           total_amount?: number;
           upsell_included?: boolean;
+          user_id?: string | null;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "orders_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          }
+        ];
       };
       product_categories: {
         Row: {
@@ -327,18 +344,33 @@ export type Database = {
       };
       profiles: {
         Row: {
+          email?: string | null;
           full_name: string;
+          gift_coupon_1_used: boolean;
+          gift_coupon_2_used: boolean;
+          gift_coupon_3_used: boolean;
           id: string;
+          phone?: string | null;
           role: "ADMIN" | "CLIENT";
         };
         Insert: {
+          email?: string | null;
           full_name: string;
+          gift_coupon_1_used?: boolean;
+          gift_coupon_2_used?: boolean;
+          gift_coupon_3_used?: boolean;
           id: string;
+          phone?: string | null;
           role?: "ADMIN" | "CLIENT";
         };
         Update: {
+          email?: string | null;
           full_name?: string;
+          gift_coupon_1_used?: boolean;
+          gift_coupon_2_used?: boolean;
+          gift_coupon_3_used?: boolean;
           id?: string;
+          phone?: string | null;
           role?: "ADMIN" | "CLIENT";
         };
         Relationships: [];

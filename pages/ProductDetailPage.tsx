@@ -1,31 +1,26 @@
-
-
-import React, { useState, useEffect } from 'react';
-import type { Product, Review, CartItem, SupabaseProduct, Tag, Category, AccordionItem, HeroData, FeaturesData, BenefitsData, ComparisonData, FaqData, Profile, VideoWithFeaturesData } from '../types';
-import type { Session, PostgrestResponse } from '@supabase/supabase-js';
+import React, { useState, useEffect, useRef } from 'react';
+import type { CartItem, Product as ProductType, Profile, PromotionCard, SupabaseProduct } from '../types';
+import type { Session } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabaseClient';
 import Header from '../components/layout/Header';
 import Footer from '../components/layout/Footer';
-import ProductHero from '../components/product_detail_page/ProductHero';
 import ProductGallery from '../components/product_detail_page/ProductGallery';
 import ProductInfo from '../components/product_detail_page/ProductInfo';
-import ProductFeatures from '../components/product_detail_page/ProductFeatures';
-import ComparisonTable from '../components/product_detail_page/ComparisonTable';
-import FaqSection from '../components/product_detail_page/FaqSection';
-import { ShoppingBagIcon, ChevronRightIcon } from '../components/product_detail_page/Icons';
-import ProductBenefitsSection from '../components/product_detail_page/ProductBenefitsSection';
-import VideoWithFeatures from '../components/product_detail_page/VideoWithFeatures';
+import ProductReviewsSection from '../components/product_detail_page/ProductReviewsSection';
 import CheckoutPopup from '../components/cart_delivery/CheckoutPopup';
 import Cart from '../components/cart_delivery/Cart';
-import ProductsGrid from '../components/products/ProductsGrid';
 import WhatsAppButton from '../components/shared/WhatsAppButton';
-import InfiniteTextBanner from '../components/shared/InfiniteTextBanner';
-import ShippingGuaranteeSection from '../components/shared/ShippingGuaranteeSection';
-import ProductReviewsSection from '../components/product_detail_page/ProductReviewsSection';
+import ProductFeatures from '../components/product_detail_page/ProductFeatures';
+import ProductHero from '../components/product_detail_page/ProductHero';
+import ProductBenefitsSection from '../components/product_detail_page/ProductBenefitsSection';
+import ComparisonTable from '../components/product_detail_page/ComparisonTable';
+import FaqSection from '../components/product_detail_page/FaqSection';
+import VideoWithFeatures from '../components/product_detail_page/VideoWithFeatures';
+import RichTextSection from '../components/product_detail_page/RichTextSection';
 
 interface ProductDetailPageProps {
-  productId: string | null;
-  onProductClick: (productId: string, productName: string) => void;
+  productSlug: string | null;
+  onProductClick: (slug: string) => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
@@ -33,352 +28,238 @@ interface ProductDetailPageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminOrdersClick?: () => void;
+  onAdminDiscountManagementClick?: () => void;
+  onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItems: CartItem[];
-  onAddToCart: (product: Product, quantity: number) => void;
+  onAddToCart: (product: ProductType, quantity: number) => void;
   onUpdateCartQuantity: (productId: string, quantity: number, newUnitPrice?: number) => void;
   onRemoveFromCart: (productId: string) => void;
-  // Auth props
   session: Session | null;
   profile: Profile | null;
   onLogout: () => void;
   showAuthModal: (view: 'login' | 'register') => void;
+  onEditProduct: (id: string) => void;
+  onSelectPromotionAndAddToCart: (product: ProductType, promotion: PromotionCard) => void;
 }
 
-type ProductData = Omit<SupabaseProduct, 'categories' | 'tags'> & {
-    product_categories: { categories: Category | null }[];
-    product_tags: { tags: Tag | null }[];
-};
-
-const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ 
-  productId, 
-  onProductClick, 
-  onCatalogClick, 
-  onHomeClick,
-  onContactFaqClick,
-  onLegalClick,
-  onAdminProductUploadClick,
-  onAdminProductManagementClick,
-  onAdminUserManagementClick,
-  cartItems, 
-  onAddToCart, 
-  onUpdateCartQuantity, 
-  onRemoveFromCart,
-  session, profile, onLogout, showAuthModal
-}) => {
-  const [product, setProduct] = useState<SupabaseProduct | null>(null);
+const ProductDetailPage: React.FC<ProductDetailPageProps> = (props) => {
+  const { productSlug, onAddToCart, cartItems, onUpdateCartQuantity, onRemoveFromCart, profile, onEditProduct, onSelectPromotionAndAddToCart, session } = props;
+  const [product, setProduct] = useState<ProductType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-
+  const [mainImageIndex, setMainImageIndex] = useState(0);
+  
   useEffect(() => {
     const fetchProduct = async () => {
-      if (!productId) {
-        setError("No se ha especificado un producto.");
+      if (!productSlug) {
+        setError('No se ha proporcionado un producto.');
         setLoading(false);
         return;
       }
       if (!supabase) {
-        setError("No se pudo conectar a la base de datos.");
+        setError('Supabase client not available.');
         setLoading(false);
         return;
       }
 
       setLoading(true);
       setError(null);
-      try {
-        const { data, error: fetchError } = await supabase
-          .from('products')
-          .select(`
-            *,
-            product_categories(categories(id, name)),
-            product_tags(tags(id, name, color))
-          `)
-          .eq('id', productId!)
-          .single<ProductData>();
+      
+      const { data, error: fetchError } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', productSlug)
+        .single();
 
-        if (fetchError) throw fetchError;
-        
-        if (data) {
-          const productData = data as any;
-          const transformedProduct = {
-            ...productData,
-            tags: (productData.product_tags || [])
-                .map((pt: any) => pt.tags)
-                .filter((t): t is Tag => t !== null),
-            categories: (productData.product_categories || [])
-                .map((pc: any) => pc.categories)
-                .filter((c): c is Category => c !== null),
-          };
-          setProduct(transformedProduct as SupabaseProduct);
+      if (fetchError) {
+        if (fetchError.code === 'PGRST116') {
+          setError('Producto no encontrado. Es posible que el enlace sea incorrecto o que el producto ya no esté disponible.');
         } else {
-            setError('Producto no encontrado.');
+          setError(`Error al cargar el producto: ${fetchError.message}`);
         }
-
-      } catch (err: unknown) {
-        let errorMessage = 'An unknown error occurred.';
-        if (typeof err === 'object' && err !== null) {
-            if ('message' in err && typeof (err as any).message === 'string') {
-                errorMessage = (err as any).message;
-            }
-        } else if (typeof err === 'string') {
-            errorMessage = err;
-        }
-        setError(`Error al cargar el producto: ${errorMessage}`);
-        console.error('Error fetching product:', err);
-      } finally {
-        setLoading(false);
+      } else if (data) {
+        const p = data as SupabaseProduct;
+        const images = [
+          p.image_url, p.image_url_2, p.image_url_3, p.image_url_4,
+          p.image_url_5, p.image_url_6, p.image_url_7, p.image_url_8,
+          p.image_url_9, p.image_url_10
+        ].filter((url): url is string => !!url);
+        
+        const transformedProduct: ProductType = {
+          id: p.id,
+          slug: p.slug,
+          vendor: p.vendor,
+          title: p.name,
+          price: p.discount_price ?? p.price,
+          originalPrice: p.discount_price ? p.price : null,
+          images,
+          rating: 5, // Placeholder
+          reviewCount: 0, // Placeholder
+          description: p.description,
+          main_benefits: [
+            p.benefit1_title && { title: p.benefit1_title, description: p.benefit1_description || '' },
+            p.benefit2_title && { title: p.benefit2_title, description: p.benefit2_description || '' },
+            p.benefit3_title && { title: p.benefit3_title, description: p.benefit3_description || '' },
+            p.benefit4_title && { title: p.benefit4_title, description: p.benefit4_description || '' },
+          ].filter(Boolean) as { title: string, description: string }[],
+          details: [
+            p.accordion_point1_title && { title: p.accordion_point1_title, content: p.accordion_point1_content || '' },
+            p.accordion_point2_title && { title: p.accordion_point2_title, content: p.accordion_point2_content || '' },
+            p.accordion_point3_title && { title: p.accordion_point3_title, content: p.accordion_point3_content || '' },
+            p.accordion_point4_title && { title: p.accordion_point4_title, content: p.accordion_point4_content || '' },
+          ].filter(Boolean) as { title: string, content: string }[],
+          stock: p.stock,
+          hero_data: p.hero_data as any,
+          features_data: p.features_data as any,
+          benefits_data: p.benefits_data as any,
+          comparison_data: p.comparison_data as any,
+          faq_data: p.faq_data as any,
+          video_with_features_data: p.video_with_features_data as any,
+          desktop_content: p.desktop_content,
+          mobile_content: p.mobile_content,
+          highlights_data: p.highlights_data as any,
+          promotions_data: p.promotions_data as any,
+        };
+        setProduct(transformedProduct);
+      } else {
+        setError('Producto no encontrado.');
       }
+      setLoading(false);
     };
 
     fetchProduct();
-  }, [productId]);
-
+  }, [productSlug]);
 
   const handleOpenCart = () => setIsCartOpen(true);
+  
+  const handleOrderNow = (quantity: number) => {
+    if (!product) return;
+    onAddToCart(product, quantity);
+    setIsCheckoutOpen(true);
+  };
 
+  const handleSelectPromotion = (promotion: PromotionCard) => {
+    if (!product) return;
+    onSelectPromotionAndAddToCart(product, promotion);
+    setIsCheckoutOpen(true);
+  };
+  
   const handleProceedToCheckout = () => {
     setIsCartOpen(false);
     setIsCheckoutOpen(true);
   };
   
-  const transformSupabaseProductToLegacy = (p: SupabaseProduct): Product => {
-    const details: AccordionItem[] = [];
-    for (let i = 1; i <= 4; i++) {
-        const title = p[`accordion_point${i}_title` as keyof SupabaseProduct] as string | null;
-        const content = p[`accordion_point${i}_content` as keyof SupabaseProduct] as string | null;
-        if (title && content) {
-            details.push({ title, content });
-        }
-    }
-
-    const images: string[] = [
-        p.image_url,
-        p.image_url_2,
-        p.image_url_3,
-        p.image_url_4,
-    ].filter((img): img is string => !!img);
-
-    return {
-      id: p.id,
-      vendor: p.vendor,
-      title: p.name,
-      price: p.discount_price ?? p.price,
-      originalPrice: p.discount_price ? p.price : null,
-      images: images,
-      videoUrl: p.video_url,
-      rating: 5, // Default
-      reviewCount: 0, // Default
-      stock: p.stock,
-      description: p.description,
-      benefits: [],
-      ingredients: [],
-      usage: '',
-      details: details.length > 0 ? details : undefined,
-      heroData: (p.hero_data as unknown as HeroData) || undefined,
-      featuresData: (p.features_data as unknown as FeaturesData) || undefined,
-      benefitsData: (p.benefits_data as unknown as BenefitsData) || undefined,
-      comparison_data: (p.comparison_data as unknown as ComparisonData) || undefined,
-      faqData: (p.faq_data as unknown as FaqData) || undefined,
-      videoWithFeaturesData: (p.video_with_features_data as unknown as VideoWithFeaturesData) || undefined,
-    };
-  };
-
-
-  const handleOrderNow = (quantity: number) => {
-    if (!product) return;
-    const productForCart: Product = transformSupabaseProductToLegacy(product);
-    onAddToCart(productForCart, quantity);
-    setIsCheckoutOpen(true);
-  };
-
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
-  useEffect(() => {
-    const body = document.body;
-    const handleEsc = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsCartOpen(false);
-        setIsCheckoutOpen(false);
-      }
-    };
-
-    if (isCartOpen || isCheckoutOpen) {
-      body.style.overflow = 'hidden';
-      window.addEventListener('keydown', handleEsc);
-    } else {
-      body.style.overflow = 'unset';
-    }
-    
-    return () => {
-      body.style.overflow = 'unset';
-      window.removeEventListener('keydown', handleEsc);
-    };
-  }, [isCartOpen, isCheckoutOpen]);
-
-  const headerProps = { onCartClick:handleOpenCart, onCatalogClick, onHomeClick, onContactFaqClick, onAdminProductUploadClick, onAdminProductManagementClick, onAdminUserManagementClick, cartItemCount, session, profile, onLogout, showAuthModal};
-
+  const headerProps = { ...props, onCartClick: handleOpenCart, cartItemCount };
+  
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white min-h-screen">
+      <>
         <Header {...headerProps} />
-        <div className="flex flex-col justify-center items-center text-center py-20">
-          <h2 className="text-2xl font-bold text-red-600">Oops, algo salió mal</h2>
-          <p className="text-red-500 mt-2 max-w-md">{error}</p>
-          <button 
-              onClick={onHomeClick}
-              className="mt-6 bg-[#16a085] text-white px-6 py-2 rounded-full hover:bg-[#117a65] font-semibold"
-          >
-              Volver al inicio
-          </button>
+        <div className="flex justify-center items-center min-h-[60vh]">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#2575fc]"></div>
         </div>
-        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
-      </div>
+        <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
+      </>
     );
   }
 
-  if (!product) {
+  if (error || !product) {
     return (
-      <div className="bg-white min-h-screen">
-        <Header {...headerProps} />
-        <div className="flex flex-col justify-center items-center text-center py-20">
-          <h2 className="text-2xl font-bold text-gray-800">Producto no encontrado</h2>
-          <p className="text-gray-500 mt-2">El producto que buscas no existe o no está disponible.</p>
-          <button 
-              onClick={onHomeClick}
-              className="mt-6 bg-[#16a085] text-white px-6 py-2 rounded-full hover:bg-[#117a65] font-semibold"
-          >
-              Volver al inicio
-          </button>
+        <div className="bg-gray-50 min-h-screen flex flex-col">
+            <Header {...headerProps} />
+            <main className="flex-grow flex items-center justify-center p-4">
+                <div className="text-center p-8 bg-white max-w-lg w-full mx-auto rounded-2xl shadow-lg border border-gray-200">
+                    <h2 className="text-2xl font-bold text-[#1a2b63]">Error</h2>
+                    <p className="text-red-600 mt-2">{error || 'No se pudo cargar el producto.'}</p>
+                    <button 
+                        onClick={props.onHomeClick}
+                        className="mt-8 bg-[#e52e8d] text-white font-bold py-3 px-6 rounded-full hover:bg-[#c82278] transition-colors"
+                    >
+                        Volver al Inicio
+                    </button>
+                </div>
+            </main>
+            <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
         </div>
-        <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
-      </div>
     );
   }
 
-  const legacyProduct: Product = transformSupabaseProductToLegacy(product);
-  const productLink = `https://ketoshop.pe/producto/${product.id}`;
-  const whatsappMessage = `Hola!, quiero más información de ${product.name} ${productLink}`;
+  const whatsappMessage = `Hola, me gustaría comprar: ${product.title}, ¿qué ofertas tiene?`;
 
   return (
-    <div className="bg-white pb-28 sm:pb-0">
+    <div className="bg-gray-50">
       <Header {...headerProps} />
-      <main>
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-0">
-            {/* <nav className="flex mb-6" aria-label="Breadcrumb">
-              <ol className="inline-flex items-center space-x-1 md:space-x-3">
-                <li className="inline-flex items-center">
-                  <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-green-600">
-                    Inicio
-                  </a>
-                </li>
-                <li>
-                  <div className="flex items-center">
-                    <ChevronRightIcon className="w-5 h-5 text-gray-400" strokeWidth={2}/>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCatalogClick(); }} className="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2">
-                      Catálogo
-                    </a>
-                  </div>
-                </li>
-                {product.categories && product.categories[0] && (
-                  <li>
-                    <div className="flex items-center">
-                      <ChevronRightIcon className="w-5 h-5 text-gray-400" strokeWidth={2}/>
-                      <a href="#" onClick={(e) => { e.preventDefault(); onCatalogClick(product.categories[0].name); }} className="ml-1 text-sm font-medium text-gray-700 hover:text-green-600 md:ml-2">
-                        {product.categories[0].name}
-                      </a>
-                    </div>
-                  </li>
-                )}
-                <li aria-current="page">
-                  <div className="flex items-center">
-                    <ChevronRightIcon className="w-5 h-5 text-gray-400" strokeWidth={2}/>
-                    <span className="ml-1 text-sm font-medium text-gray-500 md:ml-2 line-clamp-1" title={product.name}>
-                      {product.name}
-                    </span>
-                  </div>
-                </li>
-              </ol>
-            </nav>*/}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16">
-              <ProductGallery images={legacyProduct.images} videoUrl={legacyProduct.videoUrl} />
-              <ProductInfo product={legacyProduct} onOrderNow={handleOrderNow} />
+      <main className="pb-24">
+        <div className="container mx-auto px-0 sm:px-6 lg:px-8 pt-0">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+              <ProductGallery 
+                images={product.images} 
+                videoUrl={null}
+                mainImageIndex={mainImageIndex}
+                setMainImageIndex={setMainImageIndex}
+              />
+              <div>
+                <ProductInfo 
+                  product={product} 
+                  onOrderNow={handleOrderNow} 
+                  profile={profile} 
+                  onEditProduct={onEditProduct} 
+                  onSelectPromotion={handleSelectPromotion}
+                />
+              </div>
             </div>
-        </section>
-
-       
-
-        <InfiniteTextBanner
-            texts={[
-                'PAGA AL RECIBIR (LIMA E CALLAO)',
-                'ENVÍOS A TODO EL PERÚ',
-                'PRODUCTOS ORIGINALES',
-                'ENVÍOS SEGUROS',
-            ]}
-            colorScheme="purple"
-            speed="fast"
-        />
-        <VideoWithFeatures data={legacyProduct.videoWithFeaturesData} />
-        <ProductHero heroData={legacyProduct.heroData} />
-        <ProductFeatures featuresData={legacyProduct.featuresData} />
-        <ProductBenefitsSection benefitsData={legacyProduct.benefitsData} imagePosition="left" />
+        </div>
         
-        <ComparisonTable comparisonData={legacyProduct.comparison_data} productImageUrl={legacyProduct.images[0]} />
+        
 
-        <FaqSection faqData={legacyProduct.faqData} />
-        <ShippingGuaranteeSection />
-        <ProductReviewsSection productId={product.id} />
-   
-        <section className="container mx-auto px-4 sm:px-6 lg:px-8 mt-16 lg:mt-24">
-            <h2 className="text-2xl md:text-3xl font-bold text-center text-[#1a2b63] mb-8 animate-fade-in-up">Completa tu Rutina</h2>
-             <ProductsGrid 
-                limit={4}
-                onProductClick={onProductClick}
-                onAddToCart={onAddToCart}
-                tagFilter={'Oferta'}
-                onCartOpen={handleOpenCart}
-             />
+        <section className="container mx-auto px-0 sm:px-0 lg:px-8 my-0 lg:my-24">
+            <RichTextSection 
+                initialDesktopContent={product.desktop_content}
+                initialMobileContent={product.mobile_content}
+                previewOnly={true}
+            />
         </section>
-
-      
-
-   
-
+        <ProductHero heroData={product.hero_data} />
+        <ProductFeatures featuresData={product.features_data} />
+        <VideoWithFeatures data={product.video_with_features_data} />
+        <ProductBenefitsSection benefitsData={product.benefits_data} />
+        <ComparisonTable comparisonData={product.comparison_data} productImageUrl={product.images[0]} />
+        <FaqSection faqData={product.faq_data} />
+        <ProductReviewsSection productId={product.id} />
+        
       </main>
-      <Footer onLegalClick={onLegalClick} onCatalogClick={onCatalogClick} onHomeClick={onHomeClick} onContactFaqClick={onContactFaqClick} />
-       <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-sm border-t border-black-500 sm:hidden z-30">
-        <button 
-          onClick={() => handleOrderNow(1)}
-          className="w-full bg-[#16a085] text-white font-bold py-4 px-6 rounded-full hover:bg-[#117a65] transition-colors flex items-center justify-center gap-3 text-base shadow-lg shadow-green-500/30 animate-tada-periodic"
-        >
-          <ShoppingBagIcon className="w-5 h-5"/>
-          REALIZAR MI PEDIDO
-        </button>
-      </div>
-      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateQuantity={onUpdateCartQuantity} />
+      <Footer onLegalClick={props.onLegalClick} onCatalogClick={props.onCatalogClick} onHomeClick={props.onHomeClick} onContactFaqClick={props.onContactFaqClick} />
+      <CheckoutPopup isOpen={isCheckoutOpen} onClose={() => setIsCheckoutOpen(false)} items={cartItems} onUpdateCartQuantity={onUpdateCartQuantity} session={session} profile={profile} />
       <Cart 
         isOpen={isCartOpen} 
         onClose={() => setIsCartOpen(false)} 
-        onCheckout={handleProceedToCheckout} 
+        onCheckout={handleProceedToCheckout}
         items={cartItems}
         onRemoveItem={onRemoveFromCart}
-        onUpdateQuantity={onUpdateCartQuantity}
+        onUpdateCartQuantity={onUpdateCartQuantity}
       />
-      <WhatsAppButton
-        phoneNumber="965210993"
+      <WhatsAppButton 
         message={whatsappMessage}
-        className="bottom-24 right-5 sm:bottom-5"
+        className={'bottom-20 right-5'}
       />
-       
+      
+      {/* Sticky "Add to Cart" Bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] p-3 z-40">
+        <div className="container mx-auto px-4 flex justify-between items-center gap-4">
+
+            <button
+                onClick={() => handleOrderNow(1)}
+                className="bg-teal-600 w-full text-white font-bold py-3 px-5 rounded-lg hover:bg-teal-700 transition-colors whitespace-nowrap text-sm shadow-md"
+            >
+                👉 Obtener hoy Contraentrega
+            </button>
+        </div>
+      </div>
     </div>
   );
 };

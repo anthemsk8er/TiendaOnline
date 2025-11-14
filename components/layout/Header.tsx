@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { Profile } from '../../types';
 import InfiniteTextBanner from '../shared/InfiniteTextBanner';
 import { MenuIcon, SearchIcon, ShoppingBagIcon, XMarkIcon, UserIcon, ChevronDownIcon } from '../product_detail_page/Icons';
@@ -11,12 +12,14 @@ interface HeaderProps {
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
   onContactFaqClick: () => void;
+  onProfileClick?: () => void;
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
   onAdminOrdersClick?: () => void;
   onAdminDiscountManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItemCount: number;
   session: Session | null;
   profile: Profile | null;
@@ -29,12 +32,14 @@ const Header: React.FC<HeaderProps> = ({
   onCatalogClick,
   onHomeClick,
   onContactFaqClick,
+  onProfileClick,
   onAdminProductUploadClick,
   onAdminProductManagementClick,
   onAdminUserManagementClick,
   onAdminOrdersClick,
   onAdminDiscountManagementClick,
   onAdminReviewManagementClick,
+  onAdminWelcomePageClick,
   cartItemCount,
   session,
   profile,
@@ -68,6 +73,7 @@ const Header: React.FC<HeaderProps> = ({
     { label: 'Gestión de Productos', handler: createNavHandler(onAdminProductManagementClick), condition: isAdmin && !!onAdminProductManagementClick },
     { label: 'Gestión de Descuentos', handler: createNavHandler(onAdminDiscountManagementClick), condition: isAdmin && !!onAdminDiscountManagementClick },
     { label: 'Gestión de Comentarios', handler: createNavHandler(onAdminReviewManagementClick), condition: isAdmin && !!onAdminReviewManagementClick },
+    { label: 'Página Bienvenida', handler: createNavHandler(onAdminWelcomePageClick), condition: isAdmin && !!onAdminWelcomePageClick },
     { label: 'Subir Producto', handler: createNavHandler(onAdminProductUploadClick), condition: isAdmin && !!onAdminProductUploadClick },
     { label: 'Gestión de Usuarios', handler: createNavHandler(onAdminUserManagementClick), condition: isAdmin && !!onAdminUserManagementClick },
   ];
@@ -80,7 +86,7 @@ const Header: React.FC<HeaderProps> = ({
     : [];
 
   return (
-    <header className="z-40 bg-[#2952a3] shadow-md">
+    <header className="z-40 bg-white shadow-md border-b border-gray-200">
                 <InfiniteTextBanner
                     texts={[
                         'PAGA AL RECIBIR (LIMA Y CALLAO)',
@@ -88,34 +94,34 @@ const Header: React.FC<HeaderProps> = ({
                         'PRODUCTOS ORIGINALES',
                         'ENVÍOS SEGUROS',
                     ]}
-                    colorScheme="dark"
+                    colorScheme="light"
                     speed="fast"
                 />
 
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between">
+        <div className="flex h-12 items-center justify-between">
           <div className="flex flex-1 justify-start">
-            <button onClick={() => setIsMenuOpen(true)} aria-label="Open menu" className="rounded-md p-2 text-gray-200 transition hover:bg-[#1f3e7a] hover:text-white lg:hidden">
+            <button onClick={() => setIsMenuOpen(true)} aria-label="Open menu" className="rounded-md p-2 text-gray-700 transition hover:bg-gray-100 lg:hidden">
               <MenuIcon className="h-6 w-6" />
             </button>
             <nav className="hidden lg:flex lg:gap-6">
                 {navLinks.map(link => (
-                    <a href="#" key={link.label} onClick={link.handler} className="font-medium text-gray-100 hover:text-[#90b8f8] transition-colors">{link.label}</a>
+                    <a href="#" key={link.label} onClick={link.handler} className="font-medium text-[#1a2b63] hover:text-[#16a085] transition-colors">{link.label}</a>
                 ))}
             </nav>
           </div>
           <div className="flex-shrink-0">
             <a href="#" onClick={(e) => { e.preventDefault(); onHomeClick(); }} aria-label="Back to homepage">
-              <img src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/header/ketonaturalshop.svg" alt="KetoNatural Shop Logo" className="h-8 w-auto brightness-0 invert" />
+              <img src="https://uylwgmvnlnnkkvjqirhx.supabase.co/storage/v1/object/public/products/img/header/LOGO%20KB%20SUPPLEMENTS%20BLACK%20-%20horizontal.svg" alt="KetoNatural Shop Logo" className="h-5 w-auto" />
             </a>
           </div>
           <div className="flex flex-1 items-center justify-end gap-2">
-            <button aria-label="Search" className="hidden sm:block rounded-md p-2 text-gray-200 transition hover:bg-[#1f3e7a] hover:text-white">
+            <button aria-label="Search" className="hidden sm:block rounded-md p-2 text-gray-700 transition hover:bg-gray-100">
               <SearchIcon className="h-6 w-6" />
             </button>
             {session ? (
               <div className="relative">
-                <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-2 rounded-full p-2 text-gray-200 transition hover:bg-[#1f3e7a]">
+                <button onClick={() => setIsUserMenuOpen(!isUserMenuOpen)} className="flex items-center gap-2 rounded-full p-2 text-gray-700 transition hover:bg-gray-100">
                     <UserIcon className="h-6 w-6"/>
                     <span className="hidden sm:inline font-medium text-sm">{profile?.full_name?.split(' ')[0]}</span>
                     <ChevronDownIcon className="h-4 w-4 hidden sm:inline"/>
@@ -123,6 +129,7 @@ const Header: React.FC<HeaderProps> = ({
                 {isUserMenuOpen && (
                     <div onMouseLeave={() => setIsUserMenuOpen(false)} className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg py-1 z-50">
                         <div className="px-4 py-2 text-sm text-[#1a2b63] border-b">Hola, <strong>{profile?.full_name}</strong></div>
+                        <a href="#" key="profile" onClick={createNavHandler(onProfileClick)} className="block px-4 py-2 text-sm text-[#1a2b63] hover:bg-gray-100">Mi Perfil</a>
                         {adminLinks.map(link => link.condition && <a href="#" key={link.label} onClick={link.handler} className="block px-4 py-2 text-sm text-[#1a2b63] hover:bg-gray-100">{link.label}</a>)}
                         <a href="#" onClick={(e) => { e.preventDefault(); onLogout(); setIsUserMenuOpen(false); }} className="block px-4 py-2 text-sm text-[#16a085] hover:bg-gray-100">Cerrar Sesión</a>
                     </div>
@@ -130,10 +137,10 @@ const Header: React.FC<HeaderProps> = ({
               </div>
             ) : (
                 <div className="hidden sm:flex items-center gap-2">
-                    <button onClick={() => showAuthModal('login')} className="px-4 py-2 text-sm font-medium text-gray-100 hover:text-[#90b8f8]">Ingresar</button>
+                    <button onClick={() => showAuthModal('login')} className="px-4 py-2 text-sm font-medium text-[#1a2b63] hover:text-[#16a085]">Ingresar</button>
                   </div>
             )}
-            <button onClick={onCartClick} aria-label="Open cart" className="relative rounded-md p-2 text-gray-200 transition hover:bg-[#1f3e7a] hover:text-white">
+            <button onClick={onCartClick} aria-label="Open cart" className="relative rounded-md p-2 text-gray-700 transition hover:bg-gray-100">
               <ShoppingBagIcon className="h-6 w-6" />
               {cartItemCount > 0 && <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#16a085] text-xs font-medium text-white">{cartItemCount}</span>}
             </button>

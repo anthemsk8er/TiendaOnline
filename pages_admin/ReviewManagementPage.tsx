@@ -19,6 +19,7 @@ interface ReviewManagementPageProps {
   onAdminUserManagementClick?: () => void;
   onAdminReviewManagementClick?: () => void;
   onAdminOrdersClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   session: Session | null;
   profile: Profile | null;
   onLogout: () => void;

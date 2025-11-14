@@ -4,7 +4,8 @@ import { XMarkIcon, CheckIcon, ClipboardIcon, UserIcon, ChatIcon } from '../prod
 
 // Moved ModalOverlay outside the main component to prevent re-creation on re-renders.
 // This fixes the input focus loss issue.
-const ModalOverlay = ({ onClose, children }: { onClose: () => void; children: React.ReactNode }) => (
+// FIX: Made children prop optional to resolve incorrect TypeScript error.
+const ModalOverlay = ({ onClose, children }: { onClose: () => void; children?: React.ReactNode }) => (
     <div
         className={`fixed inset-0 bg-black z-50 transition-opacity modal-enter-active bg-opacity-60 flex items-center justify-center p-4`}
         onClick={onClose}
@@ -100,7 +101,7 @@ const DiscountTab = () => {
                         className={`bg-white rounded-xl shadow-2xl w-full max-w-md p-8 relative transform transition-all modal-content-enter-active`}
                         onClick={e => e.stopPropagation()}
                     >
-                         <button onClick={resetAndClose} className="absolute top-4 right-4 p-1 rounded-full text-gray-100 hover:bg-gray-100" aria-label="Cerrar modal">
+                         <button onClick={resetAndClose} className="absolute top-4 right-4 p-1 rounded-full text-gray-500 hover:bg-gray-100" aria-label="Cerrar modal">
                             <XMarkIcon className="w-6 h-6" />
                         </button>
                         

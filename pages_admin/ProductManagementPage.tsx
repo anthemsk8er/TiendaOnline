@@ -9,7 +9,7 @@ import Footer from '../components/layout/Footer';
 
 interface ProductManagementPageProps {
   onEditProduct: (id: string) => void;
-  onViewProduct: (id: string, name: string) => void;
+  onViewProduct: (slug: string) => void;
   onAddNewProduct: () => void;
   onCatalogClick: (category?: string) => void;
   onHomeClick: () => void;
@@ -18,6 +18,7 @@ interface ProductManagementPageProps {
   onAdminProductUploadClick?: () => void;
   onAdminProductManagementClick?: () => void;
   onAdminUserManagementClick?: () => void;
+  onAdminWelcomePageClick?: () => void;
   cartItemCount: number;
   session: Session | null;
   profile: Profile | null;
@@ -120,7 +121,7 @@ const ProductManagementPage: React.FC<ProductManagementPageProps> = (props) => {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
                         <button
-                          onClick={() => props.onViewProduct(product.id, product.name)}
+                          onClick={() => product.slug && props.onViewProduct(product.slug)}
                           className="text-green-600 hover:text-green-900"
                         >
                           Ver

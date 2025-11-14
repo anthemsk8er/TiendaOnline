@@ -1,5 +1,5 @@
-
 import React from 'react';
+// FIX: Changed import path to be relative to the root `types.ts`
 import type { HeroData, HeroBenefit } from '../../types';
 import DynamicIcon from '../shared/DynamicIcon';
 
@@ -21,8 +21,8 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, children, alignm
                 <DynamicIcon name={icon} className="w-8 h-8 text-[#1a2b63]" />
             </div>
             <div className={textAlignment}>
-                <h3 className="font-bold text-lg text-[#1a2b63]">{title}</h3>
-                {children && <p className="mt-1 text-gray-600">{children}</p>}
+                <h3 className="font-bold text-base text-[#1a2b63]">{title}</h3>
+                {children && <p className="mt-1 text-sm text-gray-600">{children}</p>}
             </div>
         </div>
     );
@@ -46,10 +46,10 @@ const ProductHero: React.FC<ProductHeroProps> = ({ heroData }) => {
     <section className="py-16 lg:py-24 bg-white">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center">
-            <h2 className="text-3xl lg:text-4xl font-black text-[#1a2b63] tracking-tight uppercase animate-fade-in-up">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#1a2b63] tracking-tight uppercase animate-fade-in-up">
               {title}
             </h2>
-            <p className="mt-4 max-w-3xl mx-auto text-center text-gray-600 animate-fade-in-up delay-100">
+            <p className="mt-4 max-w-3xl mx-auto text-center text-sm sm:text-base text-gray-600 animate-fade-in-up delay-100">
               {subtitle}
             </p>
         </div>

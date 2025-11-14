@@ -1,115 +1,97 @@
-
-import React, { useState, useEffect } from 'react';
+// FIX: Create missing ProductGallery.tsx file.
+import React, { useState } from 'react';
+import VideoPopup from './VideoPopup';
+import { ChevronLeftIcon, ChevronRightIcon } from './Icons';
 
 interface ProductGalleryProps {
   images: string[];
-  videoUrl?: string;
+  videoUrl: string | null;
+  mainImageIndex: number;
+  setMainImageIndex: (index: number) => void;
 }
 
-const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl }) => {
-  // Use a state object to manage the main display content for robustness
-  const [mainDisplay, setMainDisplay] = useState<{ type: 'image' | 'video', src: string }>({
-    type: 'image',
-    src: images[0] || '' // Safely default to empty string if images is empty
-  });
+const ProductGallery: React.FC<ProductGalleryProps> = ({ images, videoUrl, mainImageIndex, setMainImageIndex }) => {
+  const [isVideoOpen, setIsVideoOpen] = useState(false);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  // Reset state when props change to handle navigation between products
-  useEffect(() => {
-    setMainDisplay({ type: 'image', src: images[0] || '' });
-  }, [images, videoUrl]);
+  const handleNext = () => {
+    // FIX: Pass the calculated new index directly instead of a functional update to match prop type.
+    setMainImageIndex((mainImageIndex + 1) % images.length);
+  };
 
-  const handleImageThumbnailClick = (image: string) => {
-    setMainDisplay({ type: 'image', src: image });
+  const handlePrev = () => {
+    // FIX: Pass the calculated new index directly instead of a functional update to match prop type.
+    setMainImageIndex((mainImageIndex - 1 + images.length) % images.length);
   };
   
-  const handleVideoThumbnailClick = () => {
-    if (videoId) {
-        setMainDisplay({ type: 'video', src: embedUrl });
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+  
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStart === null) return;
+    const touchEnd = e.changedTouches[0].clientX;
+    const diff = touchStart - touchEnd;
+
+    // Swipe left (next image)
+    if (diff > 50) {
+      handleNext();
     }
+
+    // Swipe right (previous image)
+    if (diff < -50) {
+      handlePrev();
+    }
+    
+    setTouchStart(null);
+  };
+
+  if (!images || images.length === 0) {
+    return <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">No Image</div>;
   }
 
-  const extractVideoId = (url: string) => {
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  const videoId = videoUrl ? extractVideoId(videoUrl) : null;
-  const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0` : '';
-
-  const maxThumbnails = 5;
-  const hasVideo = !!videoId;
-  
-  // Take up to `maxThumbnails` images. If there's a video, take one less to make room for the video thumb.
-  const imageThumbs = images.slice(0, hasVideo ? maxThumbnails - 1 : maxThumbnails);
-  
   return (
     <div className="flex flex-col gap-4">
-      <div className="aspect-square w-full rounded-lg overflow-hidden border relative bg-gray-100">
-        {mainDisplay.type === 'video' && videoId ? (
-          <div className="w-full h-full">
-            <iframe
-              src={mainDisplay.src}
-              className="w-full h-full"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              title="Product Video"
-            />
-          </div>
-        ) : (
+      <div
+        className="aspect-square relative overflow-hidden shadow-lg bg-gray-100"
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        {images.map((image, index) => (
           <img
-            src={`${mainDisplay.src}?width=800&height=800&resize=cover&quality=85`}
-            alt="Product"
-            className="w-full h-full object-cover"
-            width="800"
-            height="800"
-          />
-        )}
-      </div>
-      <div className="grid grid-cols-5 gap-2 sm:gap-4">
-        {hasVideo && (
-            <button
-                onClick={handleVideoThumbnailClick}
-                className={`relative aspect-square rounded-md overflow-hidden border-2 transition-all ${
-                    mainDisplay.type === 'video' ? 'border-[#2575fc]' : 'border-transparent hover:border-gray-300'
-                }`}
-                aria-label="Reproducir video"
-            >
-                <img
-                    src={images[0] ? `${images[0]}?width=100&height=100&resize=cover&quality=75` : ''}
-                    alt="Video thumbnail"
-                    className="w-full h-full object-cover brightness-75"
-                    width="100"
-                    height="100"
-                />
-                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 group">
-                    <div className="bg-white bg-opacity-90 rounded-full p-2 group-hover:bg-opacity-100 transition-all scale-90 group-hover:scale-100">
-                        <svg className="w-8 h-8 text-[#2575fc]" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M8 5v14l11-7z" />
-                        </svg>
-                    </div>
-                </div>
-            </button>
-        )}
-        {imageThumbs.map((image, index) => (
-          <button
             key={index}
-            onClick={() => handleImageThumbnailClick(image)}
-            className={`aspect-square rounded-md overflow-hidden border-2 transition-all ${
-              mainDisplay.type === 'image' && mainDisplay.src === image ? 'border-[#2575fc]' : 'border-transparent hover:border-gray-300'
-            }`}
-          >
-            <img
-              src={`${image}?width=100&height=100&resize=cover&quality=75`}
-              alt={`Thumbnail ${index + 1}`}
-              className="w-full h-full object-cover"
-              width="100"
-              height="100"
-            />
-          </button>
+            src={`${image}?width=800&height=800&resize=cover`}
+            alt={`Product image ${index + 1}`}
+            className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-300 ${index === mainImageIndex ? 'opacity-100' : 'opacity-0'}`}
+          />
         ))}
+         {images.length > 1 && (
+            <>
+              <button onClick={handlePrev} className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow-md hover:bg-white transition" aria-label="Previous image">
+                  <ChevronLeftIcon className="w-6 h-6 text-gray-800" />
+              </button>
+              <button onClick={handleNext} className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/70 p-2 rounded-full shadow-md hover:bg-white transition" aria-label="Next image">
+                  <ChevronRightIcon className="w-6 h-6 text-gray-800" />
+              </button>
+            </>
+        )}
       </div>
+
+       {images.length > 1 && (
+        <div className="flex space-x-2 overflow-x-auto p-1">
+            {images.map((image, index) => (
+                <button
+                    key={index}
+                    onClick={() => setMainImageIndex(index)}
+                    className={`w-20 h-20 flex-shrink-0 rounded-md overflow-hidden border-2 transition-all duration-200 ${mainImageIndex === index ? 'border-[#16a085] scale-105' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                >
+                    <img src={`${image}?width=100&height=100&resize=cover`} alt={`Thumbnail ${index + 1}`} className="w-full h-full object-cover" />
+                </button>
+            ))}
+        </div>
+      )}
+
+       {videoUrl && <VideoPopup isOpen={isVideoOpen} onClose={() => setIsVideoOpen(false)} videoUrl={videoUrl} />}
     </div>
   );
 };

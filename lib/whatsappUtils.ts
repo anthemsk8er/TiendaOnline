@@ -9,12 +9,12 @@ export interface WhatsAppContact {
 
 export const whatsappContacts: WhatsAppContact[] = [
   {
-    name: "Juan Carlos Alvarez",
-    phoneNumber: "955249392"
+    name: "Keto Burner Oficial Atención al cliente",
+    phoneNumber: "924381098"
   },
   {
-    name: "Roberto Revoredo", 
-    phoneNumber: "933201671"
+    name: "Keto Burner Oficial Atención al cliente", 
+    phoneNumber: "924381098"
   }
 ];
 
